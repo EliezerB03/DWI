@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import *
-from tkinter import ttk, messagebox
+from tkinter import ttk, font, messagebox
 import os, sys, csv, re, random, subprocess, darkdetect, platform, ctypes
 
 def DWI():
@@ -12,12 +12,12 @@ def DWI():
             with open(os.path.join(os.path.dirname(__file__), "init"), "w") as init_file:
                 init_file.write("")
                 subprocess.check_call(["attrib","+H", os.path.join(os.path.dirname(__file__), "init")])
-
+            
             # ======================================================================================================================= #
             dynamic_window = tk.Tk() # ----- MAIN WINDOW
             dynamic_window.protocol("WM_DELETE_WINDOW", lambda: close())
             dynamic_window.withdraw()
-
+            
             if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
                 os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
             if not os.path.exists(os.path.join(os.path.dirname(__file__), "Exported")):   
@@ -34,7 +34,7 @@ def DWI():
             
             def close():
                 os.remove(os.path.join(os.path.dirname(__file__), "init"))
-                sys.exit(0)
+                dynamic_window.destroy()
 
             # ============================================== LOAD LOGIN WINDOWELEMENTS ============================================== #
             def load_loginwindow():
@@ -48,7 +48,7 @@ def DWI():
                         return False
 
                 global laboutmbar, laboutmbar_btn, lmbar_separator, loginprofile_img, loginprofile_imglb, addmodehelp_btn, editmodehelp_btn, deletemodehelp_btn
-                global username_label, password_label, changeaccountlb, username_entry, password_entry, loginbtn, infobtn, settingsbtn
+                global username_label, password_label, changeaccountlb, username_entry, password_entry, loginbtn, infobtn, settingsbtn, changeaccount_btn
                 laboutmbar_btn = Menubutton(dynamic_window, pady=6)
                 laboutmbar = Menu(laboutmbar_btn, tearoff=False)
                 laboutmbar_btn["menu"]= laboutmbar
@@ -60,9 +60,10 @@ def DWI():
 
                 addmodehelp_btn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1)
                 editmodehelp_btn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1)
-                deletemodehelp_btn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1) 
-
+                deletemodehelp_btn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1)
+                changeaccount_btn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1)
                 settingsbtn = tk.Button(dynamic_window, cursor= "hand2", width=3, height=1)
+
                 lmbar_separator = tk.Frame(dynamic_window, height=1, bd=0)
                 loginprofile_img = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/login.png"))
                 loginprofile_imglb = tk.Label(dynamic_window, image=loginprofile_img)
@@ -319,6 +320,7 @@ def DWI():
                 editbtn.config(text="   Edit             ", font="SegoeUIVariable, 12")
                 deletebtn.config(text="   Delete        ", font="SegoeUIVariable, 12")
                 clearbtn.config(text="    Clear          ", font="SegoeUIVariable, 12")
+                changeaccount_btn.config(text="👤", font="SegoeUIVariable, 12", command=changeaccount)
                 addmodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=addmode_help_eng)
                 editmodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=editmode_help_eng)
                 deletemodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=deletemode_help_eng)
@@ -396,6 +398,7 @@ def DWI():
                 editbtn.config(text="   Editar         ", font="SegoeUIVariable, 12")
                 deletebtn.config(text="   Eliminar      ", font="SegoeUIVariable, 12")
                 clearbtn.config(text="    Limpiar       ", font="SegoeUIVariable, 12")
+                changeaccount_btn.config(text="👤", font="SegoeUIVariable, 12", command=changeaccount)
                 addmodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=addmode_help_esp) 
                 editmodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=editmode_help_esp)
                 deletemodehelp_btn.config(text="❔", font="SegoeUIVariable, 12", command=deletemode_help_esp) 
@@ -541,7 +544,7 @@ def DWI():
             login_window_place()
             # =================================================================================================================== #
             # ========== LOAD SETTINGS WINDOW ========== #
-            settings_window = tk.Toplevel()
+            settings_window = tk.Toplevel(dynamic_window)
             settings_window.withdraw()
 
             themeframe = tk.Frame(settings_window, height=1, bd=0)
@@ -568,7 +571,6 @@ def DWI():
             def hide_settings():
                 restore_elements()
                 settings_window.grab_release()
-                dynamic_window.focus()
                 settings_window.transient(None)
                 settings_window.withdraw()
 
@@ -667,7 +669,7 @@ def DWI():
 
             # ============================================== LOAD/HIDE MSG ELEMENTS ============================================== #
             # ========== LOAD BASIC WINDOW CORE ========== #
-            basics_msg = tk.Toplevel()
+            basics_msg = tk.Toplevel(dynamic_window)
             basics_msg.withdraw()
             basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
 
@@ -688,7 +690,7 @@ def DWI():
             basics_msg.geometry(str(basics_w)+"x"+str(basics_h)+"+"+str(basics_width)+"+"+str(basics_height))
 
             # ========== LOAD CHANGEACCOUNT WINDOW ========== #
-            changeaccount_msg = tk.Toplevel()
+            changeaccount_msg = tk.Toplevel(dynamic_window)
             changeaccount_msg.withdraw()
             changeaccount_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
 
@@ -715,7 +717,6 @@ def DWI():
             def hide_basic_msg():
                 restore_elements()
                 basics_msg.grab_release()
-                dynamic_window.focus()
                 basics_msg.transient(None)
                 basics_msg.withdraw()
                 basics_btn_ok.place_forget()
@@ -727,13 +728,18 @@ def DWI():
                 basics_msg.grab_release()
                 basics_msg.transient(None)
                 basics_msg.withdraw()
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                    settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
+                    accountfile.write("admin,12345\n")
+                with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
+                    inventoryfile.write("")
                 os.remove(os.path.join(os.path.dirname(__file__), "init"))
-                sys.exit(0)
+                dynamic_window.destroy()
 
             def hide_changeaccount_msg():
                 restore_elements()
                 changeaccount_msg.grab_release()
-                dynamic_window.focus()
                 changeaccount_msg.transient(None)
                 changeaccount_msg.withdraw()
                 changeaccount_back()
@@ -767,10 +773,10 @@ def DWI():
                 basics_msg.transient(None)
                 basics_msg.withdraw()
                 basics_btn_ok.place_forget()
+                basics_btn_ok.config(text="OK", padx=15, pady=3, width=3)
                 changeaccount_btn_reset.place_forget()
                 changeaccount_msg.grab_set()
                 changeaccount_msg.focus_set()
-                changeaccount_msg.focus()
 
             def resetaccount():
                 with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
@@ -809,6 +815,8 @@ def DWI():
                         writer.writerows(accountdata)
                         file.seek(0, 2)
                     changeaccount_back()
+                    if device_imglb.winfo_ismapped():
+                        dynamic_window.title("Device Warehouse Inventory ("+newusername.lower()+")")
                     changeusername_correct_msg()
                 else:
                     changeaccount_error_msg()
@@ -949,9 +957,9 @@ def DWI():
                 window_h_total = dynamic_window.winfo_screenheight()
                 lang_value = languagegroup.get()
                 if lang_value == 1:
-                    window_w = 417
+                    window_w = 417  
                 elif lang_value == 2:
-                    window_w = 495
+                    window_w = 495  
                 window_h = 175
                 login_width = round(window_w_total/2-window_w/2)
                 login_height = round(window_h_total/2-window_h/2-100)
@@ -1098,11 +1106,11 @@ def DWI():
                 basics_imglb.place(x=15, y=20)
                 basics_msg_lb.config(justify="center", text="Default Account:\n\nUsername: admin\nPassword: 12345", font="SegoeUIVariable, 12")
                 basics_msg_lb.place(x=120, y=20)
-
                 changeaccount_btn_reset.config(text="Reset to Default", padx=60, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
-                changeaccount_btn_reset.place(x=70, y=120)
+                changeaccount_btn_reset.place(x=65, y=120)
+                basics_btn_ok.config(text="Close", padx=35, pady=3, width=3)
                 basics_btn_ok.config(command=hide_reset_msg)
-                basics_btn_ok.place(x=113, y=175)
+                basics_btn_ok.place(x=89, y=175)
                 basics_msg.transient(dynamic_window)
                 basics_msg.deiconify()
 
@@ -1129,9 +1137,10 @@ def DWI():
                 basics_msg_lb.place(x=120, y=20)
 
                 changeaccount_btn_reset.config(text="Restablecer a Predeterminado", padx=110, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
-                changeaccount_btn_reset.place(x=60, y=120)
+                changeaccount_btn_reset.place(x=45, y=120)
+                basics_btn_ok.config(text="Cerrar", padx=35, pady=3, width=3)
                 basics_btn_ok.config(command=hide_reset_msg)
-                basics_btn_ok.place(x=143, y=175)
+                basics_btn_ok.place(x=119, y=175)
                 basics_msg.transient(dynamic_window)
                 basics_msg.deiconify()
 
@@ -1162,8 +1171,8 @@ def DWI():
             def changelog_eng():
                 window_w_total = dynamic_window.winfo_screenwidth()
                 window_h_total = dynamic_window.winfo_screenheight()
-                window_w = 625 
-                window_h = 555
+                window_w = 505
+                window_h = 410
                 login_width = round(window_w_total/2-window_w/2)
                 login_height = round(window_h_total/2-window_h/2-100)
                 basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
@@ -1176,12 +1185,11 @@ def DWI():
                 basics_msg.focus_set()
                 
                 basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
-                basics_imglb.place(x=247, y=5)
-                basics_msg_lb.config(justify="left", text="==========================  CHANGELOG  ==========================\n\n                                  <<<<<   VERSION 2.1 (14-Oct-2023)   >>>>>\n\n- Changed DataBase Engine from mySQL > CSV File.\n- Deleted Search Button (Now Search Automatically While Typing).\n- Deleted Devices Type Option (From Now on It Will Just be ONE list).\n- Deleted ID Entry in Add Mode (Now a Unique ID will be generated).\n- Added ID Check Function to Edit Mode.\n- Added Show (Exported) Folder to Menubar.\n- Improved Logic in Several Program Fuctions.\n- Now Settings Will be Saved When You Close The Program.\n- Changed Function: Don't Remember your Account? > Change Account Information.\n- Bugs Fixes.\n- Minor Typing Fixes.\n\n                                                  Developed By Eliezer Brito\n                                                         © Elie-Dev (2023)\n                                                         All rights reserved", font="SegoeUIVariable, 12")
+                basics_imglb.place(x=183, y=5)
+                basics_msg_lb.config(justify="left", text="===================  CHANGELOG  ===================\n\n                  <<<<<   VERSION 2.2 (25-OCT-2023)   >>>>>\n\n- Added Change Account Information Button in the Main Window.\n- The Error Window Program has been Redesigned and Improved.\n- Minor Bugs Fixes.\n\n                                 Developed By Eliezer Brito\n                                         © Elie-Dev (2023)\n                                         All rights reserved", font="SegoeUIVariable, 12")
                 basics_msg_lb.place(x=17, y=140)
-
                 basics_btn_ok.config(command=hide_basic_msg)
-                basics_btn_ok.place(x=280, y=505)
+                basics_btn_ok.place(x=220, y=360)
                 basics_msg.transient(dynamic_window)
                 basics_msg.deiconify()
 
@@ -1189,8 +1197,8 @@ def DWI():
             def changelog_esp():
                 window_w_total = dynamic_window.winfo_screenwidth()
                 window_h_total = dynamic_window.winfo_screenheight()
-                window_w = 697
-                window_h = 555
+                window_w = 603
+                window_h = 410
                 login_width = round(window_w_total/2-window_w/2)
                 login_height = round(window_h_total/2-window_h/2-100)
                 basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
@@ -1203,12 +1211,12 @@ def DWI():
                 basics_msg.focus_set()
                 
                 basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
-                basics_imglb.place(x=284, y=5)
-                basics_msg_lb.config(justify="left", text="===========================  Registro de Cambios  ===========================\n\n                                          <<<<<   VERSION 2.1 (14-Oct-2023)   >>>>>\n\n- Motor de Base de Datos cambiado de MySQL > Archivo CSV.\n- Se ha Eliminado el Boton Buscar (Ahora busca Automaticamente mientras escribes).\n- Se ha eliminado la opcion Tipos de Dispositivos (A partir de Ahora sera solo UNA Lista).\n- Campo de Texto (ID) se ha eliminado para el Modo Agregar (Ahora se generara un ID Unico).\n- Se agrego la Funcion de Comprobar ID en el Modo Editar.\n- Se agrego Mostrar Carpeta (Exported) a la Barra de Menu.\n- Se mejoro la Logica en varias Funciones del Programa.\n- Ahora los Ajustes se guardan cuando cierras el programa.\n- Funcion Cambiada: No Recuerdas tu Cuenta? > Cambiar Informacion de la Cuenta.\n- Errores Corregidos.\n- Errores Menores de Escritura Corregidos.\n\n                                                          Desarrollado por Eliezer Brito\n                                                                  © Elie-Dev (2023)\n                                                       Todos los Derechos Reservados", font="SegoeUIVariable, 12")
+                basics_imglb.place(x=233, y=5)
+                basics_msg_lb.config(justify="left", text="======================  Registro de Cambios  ======================\n\n                               <<<<<   VERSION 2.2 (25-OCT-2023)   >>>>>\n\n- Se Agrego el Boton Cambiar Informacion de la Cuenta en la Ventana Principal.\n- Se ha Rediseñado y Mejorado la Ventana de Error del Programa.\n- Errores Menores Corregidos.\n\n                                            Desarrollado por Eliezer Brito\n                                                    © Elie-Dev (2023)\n                                         Todos los Derechos Reservados", font="SegoeUIVariable, 12")
                 basics_msg_lb.place(x=17, y=140)
 
                 basics_btn_ok.config(command=hide_basic_msg)
-                basics_btn_ok.place(x=319, y=505)
+                basics_btn_ok.place(x=262, y=360)
                 basics_msg.transient(dynamic_window)
                 basics_msg.deiconify()
 
@@ -1231,7 +1239,7 @@ def DWI():
                 
                 basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
                 basics_imglb.place(x=90, y=5)
-                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.1\n\nThis Program is to Add, Edit or Delete \nDevice information in the Inventory \nfrom the Local DataBase.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2023)\nAll rights reserved", font="SegoeUIVariable, 12")
+                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.2\n\nThis Program is to Add, Edit or Delete \nDevice information in the Inventory \nfrom the Local DataBase.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2023)\nAll rights reserved", font="SegoeUIVariable, 12")
                 basics_msg_lb.place(x=17, y=140)
 
                 basics_btn_ok.config(command=hide_basic_msg)
@@ -1258,7 +1266,7 @@ def DWI():
                 
                 basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
                 basics_imglb.place(x=132, y=5)
-                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.1\n\nEste Programa es para Agregar, Editar o Eliminar \nInformacion del Dispositivo en el Inventario \nde la Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n © Elie-Dev (2023) \nTodos los Derechos Reservados", font="SegoeUIVariable, 12")
+                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.2\n\nEste Programa es para Agregar, Editar o Eliminar \nInformacion del Dispositivo en el Inventario \nde la Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n © Elie-Dev (2023) \nTodos los Derechos Reservados", font="SegoeUIVariable, 12")
                 basics_msg_lb.place(x=17, y=140)
 
                 basics_btn_ok.config(command=hide_basic_msg)
@@ -1378,54 +1386,64 @@ def DWI():
             def fatal_error_eng():
                 window_w_total = dynamic_window.winfo_screenwidth()
                 window_h_total = dynamic_window.winfo_screenheight()
-                window_w = 363
+                window_w = 533
                 window_h = 175
                 login_width = round(window_w_total/2-window_w/2)
                 login_height = round(window_h_total/2-window_h/2-100)
                 basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+                dynamic_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+                dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(dynamic_height))
+                dynamic_window.deiconify()
+                basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
 
                 off_elements_msg()
                 basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_error_msg())    
-                basics_msg.title("Fatal Error")
+                basics_msg.title("An error has occurred!")
                 basics_msg.resizable(width=False, height=False)
                 basics_msg.grab_set()
                 basics_msg.focus_set()
                 
-                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
                 basics_imglb.place(x=15, y=30)
-                basics_msg_lb.config(justify="center", text="FATAL PROGRAM ERROR!", font="SegoeUIVariable, 12")
-                basics_msg_lb.place(x=120, y=57)
+                basics_msg_lb.config(justify="center", text="Corrupt Files have been found inside the Folder (Data).\n\nThe program will restore the Default Settings.\nRe-Open the Program!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=30)
 
                 basics_btn_ok.config(command=hide_error_msg)
-                basics_btn_ok.place(x=150, y=125)
+                basics_btn_ok.place(x=235, y=125)
                 basics_msg.transient(dynamic_window)
+                dynamic_window.withdraw()
                 basics_msg.deiconify()
 
             # ========== FATAL ERROR MSG SPANISH ========== #
             def fatal_error_esp():
                 window_w_total = dynamic_window.winfo_screenwidth()
                 window_h_total = dynamic_window.winfo_screenheight()
-                window_w = 395
+                window_w = 615
                 window_h = 175
                 login_width = round(window_w_total/2-window_w/2)
                 login_height = round(window_h_total/2-window_h/2-100)
                 basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+                dynamic_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+                dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(dynamic_height))
+                dynamic_window.deiconify()
+                basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
 
                 off_elements_msg()
                 basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_error_msg())    
-                basics_msg.title("Error Fatal")
+                basics_msg.title("Ha ocurrido un Error!")
                 basics_msg.resizable(width=False, height=False)
                 basics_msg.grab_set()
                 basics_msg.focus_set()
                 
-                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
                 basics_imglb.place(x=15, y=30)
-                basics_msg_lb.config(justify="center", text="ERROR FATAL DEL PROGRAMA!", font="SegoeUIVariable, 12")
-                basics_msg_lb.place(x=120, y=57)
+                basics_msg_lb.config(justify="center", text="Se han encontrado Archivos Corruptos dentro de la Carpeta (Data).\n\nEl programa restaurará la Configuración Predeterminada.\nVuelva Abrir el Programa!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=30)
 
                 basics_btn_ok.config(command=hide_error_msg)
-                basics_btn_ok.place(x=165, y=125)
+                basics_btn_ok.place(x=275, y=125)
                 basics_msg.transient(dynamic_window)
+                dynamic_window.withdraw()
                 basics_msg.deiconify()
 
             # =============================================================================================================================
@@ -2320,6 +2338,7 @@ def DWI():
                 cancelbtn.config(cursor="arrow")
                 deletebtn.config(cursor="arrow")
                 clearbtn.config(cursor="arrow")
+                changeaccount_btn.config(cursor="arrow")
                 addmodehelp_btn.config(cursor="arrow")
                 editmodehelp_btn.config(cursor="arrow")
                 deletemodehelp_btn.config(cursor="arrow")
@@ -2366,6 +2385,7 @@ def DWI():
                 editbtn.config(cursor="hand2")
                 deletebtn.config(cursor="hand2")
                 clearbtn.config(cursor="hand2")
+                changeaccount_btn.config(cursor="hand2")
                 addmodehelp_btn.config(cursor="hand2")
                 editmodehelp_btn.config(cursor="hand2")
                 deletemodehelp_btn.config(cursor="hand2")
@@ -2424,6 +2444,7 @@ def DWI():
                 cancelbtn.place_forget()
                 deletebtn.place_forget()
                 clearbtn.place_forget()
+                changeaccount_btn.place_forget()
                 addmodehelp_btn.place_forget()
                 editmodehelp_btn.place_forget()
                 deletemodehelp_btn.place_forget()
@@ -2530,7 +2551,8 @@ def DWI():
                         def buttons_mw():
                             addbtn.place(x=763, y=398, width=139)
                             clearbtn.place(x=763, y=438, width=139)
-                            addmodehelp_btn.place(x=851, y=0)    
+                            addmodehelp_btn.place(x=815, y=0)
+                            changeaccount_btn.place(x=851, y=0)
 
                         # ================================================================================================================== #  
                         def reflesh_inventory():
@@ -2581,7 +2603,7 @@ def DWI():
                                 device_imglb.place(x=15, y=396)
                                 dynamic_window.geometry("923x585")
                                 device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
-                                addmodehelp_btn.place(x=851, y=0)
+                                addmodehelp_btn.place(x=815, y=0)
                                 device_imglb.config(image=device_img)
                                 clear_mw()
                                 brandlb.config(state="normal")
@@ -2640,7 +2662,7 @@ def DWI():
                                 device_imglb.place(x=15, y=396)
                                 dynamic_window.geometry("923x610")
                                 device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
-                                editmodehelp_btn.place(x=851, y=0)
+                                editmodehelp_btn.place(x=815, y=0)
                                 device_imglb.config(image=device_img)
                                 clear_mw()
                                 brandlb.config(state="disabled")
@@ -2714,7 +2736,7 @@ def DWI():
                                 device_imglb.place(x=15, y=396)
                                 dynamic_window.geometry("923x490")
                                 device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices2.png"))
-                                deletemodehelp_btn.place(x=851, y=0)
+                                deletemodehelp_btn.place(x=815, y=0)
                                 device_imglb.config(image=device_img)
                                 addbtn.place_forget()
                                 checkbtn.place_forget()
@@ -3097,7 +3119,7 @@ def DWI():
                         clearbtn.config(cursor="hand2", command=clear_mw)
                         buttons_mw()
                         settingsbtn.place(x=887, y=0)
-
+                        
                         # ========== SEPARATORS ========== #
                         separators_mw()
 
@@ -3359,7 +3381,8 @@ def DWI():
                 editbtn.config(foreground="#0055FF", activeforeground="#0055FF", bg="white", activebackground="#EFEFEF")
                 cancelbtn.config(foreground="#EB0000", activeforeground="#EB0000", bg="white", activebackground="#EFEFEF")
                 deletebtn.config(foreground="#EB0000", activeforeground="#EB0000", bg="white", activebackground="#EFEFEF")
-                clearbtn.config(foreground="black", activeforeground="black", bg="white", activebackground="#EFEFEF")            
+                clearbtn.config(foreground="black", activeforeground="black", bg="white", activebackground="#EFEFEF")  
+                changeaccount_btn.config(fg="black", activeforeground="black", bg="white", activebackground="#EFEFEF")     
                 addmodehelp_btn.config(fg="black", activeforeground="black", bg="white", activebackground="#EFEFEF")
                 editmodehelp_btn.config(fg="black", activeforeground="black", bg="white", activebackground="#EFEFEF")
                 deletemodehelp_btn.config(fg="black", activeforeground="black", bg="white", activebackground="#EFEFEF")
@@ -3371,6 +3394,7 @@ def DWI():
                 cancelbtn.config(foreground="#EB0000", activeforeground="#EB0000", bg="black", activebackground="#111111")
                 deletebtn.config(foreground="#EB0000", activeforeground="#EB0000", bg="black", activebackground="#111111")
                 clearbtn.config(foreground="white", activeforeground="white", bg="black", activebackground="#111111")
+                changeaccount_btn.config(fg="white", activeforeground="white", bg="black", activebackground="#111111") 
                 addmodehelp_btn.config(fg="white", activeforeground="white", bg="black", activebackground="#111111") 
                 editmodehelp_btn.config(fg="white", activeforeground="white", bg="black", activebackground="#111111")
                 deletemodehelp_btn.config(fg="white", activeforeground="white", bg="black", activebackground="#111111")
@@ -3469,7 +3493,7 @@ def DWI():
             loginbtn.place(y=280)
             infobtn.place(x=507, y=319)
             settingsbtn.place(x=514, y=0)
-
+            
             changeaccountlb.place(x=6, y=328)
             changeaccountlb.bind("<Enter>", lambda event: changeaccountlb.config(fg="#0083FF"))
             changeaccountlb.bind("<Leave>", lambda event: changeaccountlb.config(fg="#0055FF"))
@@ -3490,15 +3514,134 @@ def DWI():
                 window_dark()
             elif "theme=light_theme" in themedata:
                 window_light()
-
+            
             # ============================== #
             dynamic_window.deiconify()
             dynamic_window.focus_force()
             username_entry.focus()
-            dynamic_window.mainloop()  # ---- END of the Code
+            dynamic_window.mainloop()  # ---- END of the Main Code
+
+    # ============================================== EXCEPTION ============================================== #
     except Exception as e:
-        tk.messagebox.showerror("An error has occurred!", f"Information About the Error:\n\n{e}")
-        os.remove(os.path.join(os.path.dirname(__file__), "init"))
+        with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+            loadsettings = csv.reader(settingfile)
+            settingdata = list(loadsettings)
+        languagedata = set([row[0]for row in settingdata])
+        if "language=eng_lang" and "language=esp_lang" in languagedata:
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+        elif "theme=dark_theme" and "theme=light_theme" in languagedata:
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+        else:
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+
+        errorinfo_wm = tk.Toplevel(dynamic_window)
+        e_icons=tk.Label(text="📄")
+        errorinfo_wm.transient(dynamic_window)
+        errorinfo_wm.withdraw()
+        errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: error_close())
+        errorinfo_wm.resizable(width=False, height=False)
+        errorinfo_wm.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
+        errorinfo_wm.grab_set()
+        errorinfo_wm.focus_set()
+        error_close_btn = tk.Button(errorinfo_wm, padx=35, pady=3, width=3)
+        errorimg = tk.PhotoImage()
+        errorimglb = tk.Label(errorinfo_wm, image=errorimg)
+        errorlb = tk.Label(errorinfo_wm)
+        infotxtlb = tk.Label(errorinfo_wm, wraplength=420, cursor="hand2", justify="left")
+        eMenu = Menu(errorinfo_wm, tearoff=False)
+        eMenu.add_command(compound=tk.LEFT)
+        def copy_text():
+            errorinfo_wm.clipboard_clear()
+            errorinfo_wm.clipboard_append(infotxtlb.cget("text"))
+        def e_menu(action):
+            eMenu.entryconfigure(0, command=lambda: copy_text())
+            eMenu.post(action.x_root, action.y_root)
+        infotxtlb.bind("<ButtonRelease-1>", e_menu)
+        infotxtlb.bind("<ButtonRelease-3>", e_menu)
+        def errorwm_place():
+            window_w_total = errorinfo_wm.winfo_screenwidth()
+            window_h_total = errorinfo_wm.winfo_screenheight()
+            window_w = 564
+            window_h = 230
+            error_width = round(window_w_total/2-window_w/2)
+            error_height = round(window_h_total/2-window_h/2-50)
+            errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
+            errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
+        errorwm_place()
+        errorimg.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
+        
+        def error_lang_eng():
+            errorinfo_wm.title("An error has occurred!")
+            eMenu.entryconfigure(0, label="📄  Copy", font="SegoeUIVariable, 12")
+            if type(e) == TclError:
+                errorlb.config(justify="left", text="The Required Files Could Not be Loaded!\n\nError Information:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
+            elif type(e) == NameError:
+                errorlb.config(justify="left", text="Undefined Variable Names Found!\n\nError Information:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
+            errorlb.place(x=110, y=25)
+            infotxtlb.place(x=110, y=85)
+            error_close_btn.config(text="Close", font="SegoeUIVariable, 12", cursor="hand2", command=error_close)
+            error_close_btn.place(x=228, y=180)
+            errorimglb.place(x=15, y=15)
+
+        def error_lang_esp():
+            errorinfo_wm.title("Ha ocurrido un Error!")
+            eMenu.entryconfigure(0, label="📄  Copiar", font="SegoeUIVariable, 12")
+            if type(e) == TclError:
+                errorlb.config(justify="left", text="No se han Podido Cargar los Archivos Requeridos!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
+            elif type(e) == NameError:
+                errorlb.config(justify="left", text="Se han Encontrado Nombres de Variables sin Definir!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
+            errorlb.place(x=110, y=25)
+            infotxtlb.place(x=110, y=85)
+            error_close_btn.config(text="Cerrar", font="SegoeUIVariable, 12", cursor="hand2", command=error_close)
+            error_close_btn.place(x=228, y=180)
+            errorimglb.place(x=15, y=15)
+
+        def error_dark():
+            eMenu.entryconfigure(0, background="black", foreground="white")
+            errorinfo_wm.config(bg="black")
+            errorlb.config(bg="black", fg="white")
+            errorimglb.config(bg="black")
+            infotxtlb.config(background="black", foreground="#FF9E9E")
+            error_close_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
+            
+        def error_light():
+            eMenu.entryconfigure(0, background="white", foreground="black")
+            errorinfo_wm.config(bg="white")
+            errorlb.config(bg="white", fg="black")
+            errorimglb.config(bg="white")
+            infotxtlb.config(background="white", foreground="#9E0000")
+            error_close_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
+
+        def error_close():
+            os.remove(os.path.join(os.path.dirname(__file__), "init"))
+            dynamic_window.destroy()
+        
+        languagedata = set([row[0]for row in settingdata])
+        if "language=eng_lang" in languagedata:
+            error_lang_eng()
+        elif "language=esp_lang" in languagedata:
+            error_lang_esp()
+        themedata = set([row[0]for row in settingdata])
+        if "theme=dark_theme" in themedata:                     
+            error_dark()
+        elif "theme=light_theme" in themedata:
+            error_light()
+
+        errorinfo_wm.deiconify()
+        dynamic_window.mainloop()
 
 # ============= REQUIREMENTS ============= #
 os_version = int(platform.version().split('.')[2])
@@ -3518,3 +3661,4 @@ elif res_width < 1024 or res_height < 768:
     sys.exit(0)
 else: 
     DWI()
+
