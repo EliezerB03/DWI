@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, font, messagebox
-import os, sys, csv, re, random, wmi, darkdetect, platform, ctypes
+import os, sys, csv, re, random, wmi, datetime, darkdetect, platform, ctypes
 
 if os.path.exists(os.path.join(os.path.dirname(__file__), "DWI.exe")):
     process_query = "SELECT Name, ProcessId FROM Win32_Process WHERE Name = 'DWI.exe'"
@@ -13,7 +13,7 @@ else:
 
 def DWI():
     global dynamic_window
-    try:            
+    try:
         # ======================================================================================================================= #
         dynamic_window = tk.Tk() # ----- MAIN WINDOW
         dynamic_window.protocol("WM_DELETE_WINDOW", lambda: close())
@@ -23,6 +23,7 @@ def DWI():
             os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "Exported")):   
             os.makedirs(os.path.join(os.path.dirname(__file__), "Exported"))
+        
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "settings.dat")):
             with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
                 settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
@@ -32,9 +33,266 @@ def DWI():
         if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv")):
             with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
                 inventoryfile.write("")
+                
+        errorinfo_wm = tk.Toplevel(dynamic_window)
+        errorinfo_wm.transient(dynamic_window)
+        errorinfo_wm.withdraw()
+        error_close_btn = tk.Button(errorinfo_wm, padx=35, pady=3, width=3)
+        errorimg = tk.PhotoImage()
+        errorimglb = tk.Label(errorinfo_wm, image=errorimg)
+        errorlb = tk.Label(errorinfo_wm)
+        infotxtlb = tk.Label(errorinfo_wm, wraplength=520, cursor="hand2", justify="left")
+        eMenu = Menu(errorinfo_wm, tearoff=False)
+        e_icons = tk.Label(text="📄 ❎")
         
         def close():
             sys.exit(0)
+
+        def error_wn():
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+            settingsdata = set([row[0]for row in settingdata])
+            if "language=eng_lang" and "language=esp_lang" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            elif "theme=dark_theme" and "theme=light_theme" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            else:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                    settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+
+            errorinfo_wm.resizable(width=False, height=False)
+            errorinfo_wm.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
+            errorinfo_wm.grab_set()
+            errorinfo_wm.focus_set()
+            
+            eMenu.add_command(compound=tk.LEFT)
+            def copy_text():
+                errorinfo_wm.clipboard_clear()
+                errorinfo_wm.clipboard_append(infotxtlb.cget("text"))
+            def e_menu(action):
+                eMenu.entryconfigure(0, command=lambda: copy_text())
+                eMenu.post(action.x_root, action.y_root)
+            infotxtlb.bind("<ButtonRelease-1>", e_menu)
+            infotxtlb.bind("<ButtonRelease-3>", e_menu)
+            errorimg.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
+                        
+            themedata = set([row[0]for row in settingdata])
+            if "theme=dark_theme" in themedata:                     
+                eMenu.entryconfigure(0, background="black", foreground="white")
+                errorinfo_wm.config(bg="black")
+                errorlb.config(bg="black", fg="white")
+                errorimglb.config(bg="black")
+                infotxtlb.config(background="black", foreground="#FF9E9E")
+                error_close_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
+            elif "theme=light_theme" in themedata:
+                eMenu.entryconfigure(0, background="white", foreground="black")
+                errorinfo_wm.config(bg="white")
+                errorlb.config(bg="white", fg="black")
+                errorimglb.config(bg="white")
+                infotxtlb.config(background="white", foreground="#9E0000")
+                error_close_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
+
+        def corruptprogram_error_msg():
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+            settingsdata = set([row[0]for row in settingdata])
+            if "language=eng_lang" and "language=esp_lang" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            elif "theme=dark_theme" and "theme=light_theme" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            else:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                    settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+
+            errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: close())
+            languagedata = set([row[0]for row in settingdata])
+            if "language=eng_lang" in languagedata:
+                window_w_total = errorinfo_wm.winfo_screenwidth()
+                window_h_total = errorinfo_wm.winfo_screenheight()
+                window_w = 533
+                window_h = 175
+                error_width = round(window_w_total/2-window_w/2)
+                error_height = round(window_h_total/2-window_h/2-50)
+                errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
+                errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+                dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
+                dynamic_window.deiconify()
+
+                off_elements_msg()
+                errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: close())    
+                errorinfo_wm.title("An Fatal Error has occurred!")
+                errorinfo_wm.resizable(width=False, height=False)
+                errorinfo_wm.grab_set()
+                errorinfo_wm.focus_set()
+                
+                errorimglb.place(x=15, y=30)
+                errorlb.config(justify="center", text="Corrupt Program Files have been found.\nReinstall/Restore the Program.\n\nIf you still have problems, Please notify the Developer!", font="SegoeUIVariable, 12")
+                errorlb.place(x=120, y=30)
+
+                error_close_btn.config(text="❎ Close", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=210, y=125)
+                errorinfo_wm.transient(dynamic_window)
+            elif "language=esp_lang" in languagedata:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 615
+                window_h = 175
+                error_width = round(window_w_total/2-window_w/2)
+                error_height = round(window_h_total/2-window_h/2-50)
+                errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
+                errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+                dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
+                dynamic_window.deiconify()
+
+                off_elements_msg()
+                errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: close())    
+                errorinfo_wm.title("Ha ocurrido un Error Fatal!")
+                errorinfo_wm.resizable(width=False, height=False)
+                errorinfo_wm.grab_set()
+                errorinfo_wm.focus_set()
+                
+                errorimglb.place(x=15, y=30)
+                errorlb.config(justify="center", text="Se han Encontrado Archivos del Programa Corruptos.\nReinstale/Restaure el Programa\n\nSi aun tienes problemas, Por favor notifica al Desarrollador!", font="SegoeUIVariable, 12")
+                errorlb.place(x=120, y=30)
+
+                error_close_btn.config(text="❎ Cerrar", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=255, y=125)
+                errorinfo_wm.transient(dynamic_window)
+            dynamic_window.withdraw()
+            basics_msg.withdraw()
+            settings_window.withdraw()
+            errorinfo_wm.deiconify()
+            dynamic_window.mainloop()
+
+        def loadfile_error_msg():
+            window_w_total = errorinfo_wm.winfo_screenwidth()
+            window_h_total = errorinfo_wm.winfo_screenheight()
+            window_w = 704
+            window_h = 260
+            error_width = round(window_w_total/2-window_w/2)
+            error_height = round(window_h_total/2-window_h/2-50)
+            errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
+            errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
+            errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: close())
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+            settingsdata = set([row[0]for row in settingdata])
+            if "language=eng_lang" and "language=esp_lang" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            elif "theme=dark_theme" and "theme=light_theme" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            else:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                    settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+                    
+            languagedata = set([row[0]for row in settingdata])
+            if "language=eng_lang" in languagedata:
+                errorinfo_wm.title("An error has occurred!")
+                eMenu.entryconfigure(0, label="📄  Copy", font="SegoeUIVariable, 12")
+                errorlb.config(justify="left", text="The Required Files Could Not be Loaded!\n\nError Information:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(sys.exc_info()), font=font.Font(family="Consolas", size=11))
+                errorlb.place(x=110, y=25)
+                infotxtlb.place(x=110, y=85)
+                error_close_btn.config(text="❎ Close", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=298, y=210)
+                errorimglb.place(x=15, y=15)
+            elif "language=esp_lang" in languagedata:
+                errorinfo_wm.title("Ha ocurrido un Error!")
+                eMenu.entryconfigure(0, label="📄  Copiar", font="SegoeUIVariable, 12")
+                errorlb.config(justify="left", text="No se han Podido Cargar los Archivos Requeridos!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(sys.exc_info()), font=font.Font(family="Consolas", size=11))
+                errorlb.place(x=110, y=25)
+                infotxtlb.place(x=110, y=85)
+                error_close_btn.config(text="❎ Cerrar", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=298, y=210)
+                errorimglb.place(x=15, y=15)
+            dynamic_window.withdraw()
+            basics_msg.withdraw()
+            settings_window.withdraw()
+            errorinfo_wm.deiconify()
+            dynamic_window.mainloop()
+
+        def loaddata_error_msg():
+            window_w_total = errorinfo_wm.winfo_screenwidth()
+            window_h_total = errorinfo_wm.winfo_screenheight()
+            window_w = 704
+            window_h = 260
+            error_width = round(window_w_total/2-window_w/2)
+            error_height = round(window_h_total/2-window_h/2-50)
+            errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
+            errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
+            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
+            errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: close())
+            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                loadsettings = csv.reader(settingfile)
+                settingdata = list(loadsettings)
+            settingsdata = set([row[0]for row in settingdata])
+            if "language=eng_lang" and "language=esp_lang" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            elif "theme=dark_theme" and "theme=light_theme" in settingsdata:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+            else:
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+                    settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
+                with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
+                    loadsettings = csv.reader(settingfile)
+                    settingdata = list(loadsettings)
+                    
+            languagedata = set([row[0]for row in settingdata])
+            if "language=eng_lang" in languagedata:
+                errorinfo_wm.title("An error has occurred!")
+                eMenu.entryconfigure(0, label="📄  Copy", font="SegoeUIVariable, 12")
+                errorlb.config(justify="left", text="Inventory Data contains non valid values or the File is Corrupt!\n\nError Information:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(sys.exc_info()), font=font.Font(family="Consolas", size=11))
+                errorlb.place(x=110, y=25)
+                infotxtlb.place(x=110, y=85)
+                error_close_btn.config(text="❎ Close", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=298, y=210)
+                errorimglb.place(x=15, y=15)
+            elif "language=esp_lang" in languagedata:
+                errorinfo_wm.title("Ha ocurrido un Error!")
+                eMenu.entryconfigure(0, label="📄  Copiar", font="SegoeUIVariable, 12")
+                errorlb.config(justify="left", text="Los Datos del Inventario contiene valores no validos o el archivo esta corrupto!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
+                infotxtlb.config(text=str(sys.exc_info()), font=font.Font(family="Consolas", size=11))
+                errorlb.place(x=110, y=25)
+                infotxtlb.place(x=110, y=85)
+                error_close_btn.config(text="❎ Cerrar", font="SegoeUIVariable, 12", cursor="hand2", command=close)
+                error_close_btn.place(x=298, y=210)
+                errorimglb.place(x=15, y=15)
+            dynamic_window.withdraw()
+            basics_msg.withdraw()
+            settings_window.withdraw()
+            errorinfo_wm.deiconify()
+            dynamic_window.mainloop()
 
         # ============================================== LOAD LOGIN WINDOWELEMENTS ============================================== #
         def load_loginwindow():
@@ -47,7 +305,7 @@ def DWI():
                 else:
                     return False
 
-            global laboutmbar, laboutmbar_btn, lmbar_separator, loginprofile_img, loginprofile_imglb, modeshelp_btn
+            global laboutmbar, laboutmbar_btn, lmbar_separator, loginprofile_img, loginprofile_imglb, modeshelp_btn, welcome_login
             global username_label, password_label, changeaccountlb, username_entry, password_entry, loginbtn, infobtn, settingsbtn, changeaccount_btn
             laboutmbar_btn = Menubutton(dynamic_window)
             laboutmbar = Menu(laboutmbar_btn, tearoff=False)
@@ -65,6 +323,7 @@ def DWI():
             lmbar_separator = tk.Frame(dynamic_window)
             loginprofile_img = tk.PhotoImage(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/login.png"))
             loginprofile_imglb = tk.Label(dynamic_window, image=loginprofile_img)
+            welcome_login = tk.Label(dynamic_window)
             username_label = tk.Label(dynamic_window)
             username_entry = tk.Entry(dynamic_window, width=30, validate="key", validatecommand=(dynamic_window.register(validate_value_account), "%P"), font="SegoeUIVariable, 12")
             password_label = tk.Label(dynamic_window)
@@ -77,44 +336,44 @@ def DWI():
         def load_inventory_window():
             def validate_value_id(text):
                 pattern = re.compile(r"^[0-9]+$")
-                if pattern.match(text) is not None:
-                    return True and len(text) <= 7
+                if pattern.match(text) is not None and len(text) <= 7:
+                    return True
                 elif text == "":
-                    return True and len(text) <= 7
+                    return True
                 else:
-                    return False and len(text) <= 7
+                    return False
             def validate_value_brand(text):
                 pattern = re.compile(r"^[a-zA-Z0-9-_ ]+$")
-                if pattern.match(text) is not None:
-                    return True and len(text) <= 15
+                if pattern.match(text) is not None and len(text) <= 15:
+                    return True
                 elif text == "":
-                    return True and len(text) <= 15
+                    return True
                 else:
-                    return False and len(text) <= 15
+                    return False
             def validate_value_model(text):
                 pattern = re.compile(r"^[a-zA-Z0-9-_ ]+$")
-                if pattern.match(text) is not None:
-                    return True and len(text) <= 28
+                if pattern.match(text) is not None and len(text) <= 28:
+                    return True
                 elif text == "":
-                    return True and len(text) <= 28 
+                    return True
                 else:
-                    return False and len(text) <= 28
+                    return False
             def validate_value_color(text):
                 pattern = re.compile(r"^[a-zA-Z ]+$")
-                if pattern.match(text) is not None:
-                    return True and len(text) <= 18
+                if pattern.match(text) is not None and len(text) <= 13:
+                    return True
                 elif text == "":
-                    return True and len(text) <= 18
+                    return True
                 else:
-                    return False and len(text) <= 18
+                    return False
             def validate_value_date(text):
-                pattern = re.compile(r"^[0-9-/]+$")
-                if pattern.match(text) is not None:
-                    return True and len(text) <= 15
+                pattern = re.compile(r"^[a-zA-Z0-9-: ]+$")
+                if pattern.match(text) is not None and len(text) <= 19:
+                    return True
                 elif text == "":
-                    return True and len(text) <= 15
+                    return True
                 else:
-                    return False and len(text) <= 15
+                    return False
 
             global mainmbar_btn, aboutmbar_btn, mainmbar, aboutmbar, idlb, brandlb, modellb, colorlb, datelb, inventorylb, searchlb, device_img, device_imglb
             global id_entry, brand_entry, model_entry, color_entry, date_entry, search_entry, inventory_table, table_scrollbar, addrb, editrb, deleterb, modes_group
@@ -149,9 +408,9 @@ def DWI():
             inventory_table["columns"]=("id", "brand", "model", "color", "date")
             inventory_table.column("id", width=85, minwidth=85, anchor=tk.SW)
             inventory_table.column("brand", width=160, minwidth=160, anchor=tk.SW)
-            inventory_table.column("model", width=260, minwidth=260, anchor=tk.SW)
-            inventory_table.column("color", width=180, minwidth=180, anchor=tk.SW)
-            inventory_table.column("date", width=195, minwidth=195, anchor=tk.SW)
+            inventory_table.column("model", width=300, minwidth=300, anchor=tk.SW)
+            inventory_table.column("color", width=150, minwidth=150, anchor=tk.SW)
+            inventory_table.column("date", width=185, minwidth=185, anchor=tk.SW)
             table_scrollbar = ttk.Scrollbar(dynamic_window, orient="vertical", command=inventory_table.yview)
             inventory_table.configure(yscrollcommand=table_scrollbar.set)
             foundlb = tk.Label(dynamic_window)
@@ -169,7 +428,7 @@ def DWI():
             model_entry =tk.Entry(dynamic_window, width=31, validate="key", validatecommand=(dynamic_window.register(validate_value_model), "%P"), cursor= "xterm", font="SegoeUIVariable, 12")
             color_entry =tk.Entry(dynamic_window, width=31, validate="key", validatecommand=(dynamic_window.register(validate_value_color), "%P"), cursor= "xterm", font="SegoeUIVariable, 12")
             date_entry =tk.Entry(dynamic_window, width=31, validate="key", validatecommand=(dynamic_window.register(validate_value_date), "%P"), cursor= "xterm", font="SegoeUIVariable, 12")
-
+            
             addbtn = tk.Button(dynamic_window, cursor= "hand2", padx=50, width=3)
             checkbtn = tk.Button(dynamic_window, cursor= "hand2", padx=50, width=3)
             editbtn = tk.Button(dynamic_window, cursor= "hand2", padx=50, width=3)
@@ -198,11 +457,13 @@ def DWI():
 
             dynamic_window.title("Device Warehouse Inventory (Sign-In)")
 
-            laboutmbar_btn.config(text = "About", font="SegoeUIVariable, 12", padx=10)
+            laboutmbar_btn.config(text = "About", font="SegoeUIVariable, 12")
             laboutmbar.entryconfigure(0, label="❔  How to Sign-In?", font="SegoeUIVariable, 12", command=login_help_eng)
             laboutmbar.entryconfigure(2, label="📝  ChangeLog", font="SegoeUIVariable, 12", command=changelog_eng)
             laboutmbar.entryconfigure(3, label="❕  About the Program", font="SegoeUIVariable, 12", command=about_eng)
 
+            welcome_login.config(text="Login with your Account", font="SegoeUIVariable, 17")
+            welcome_login.place(x=158)
             username_label.config(text="Username:", font="SegoeUIVariable, 12")
             password_label.config(text="Password:", font="SegoeUIVariable, 12")
             changeaccountlb.config(text="👤 Account Settings", font="SegoeUIVariable, 12")
@@ -233,11 +494,13 @@ def DWI():
 
             dynamic_window.title("Device Warehouse Inventory (Inicia Sesion)")
 
-            laboutmbar_btn.config(text = "Acerca de", font="SegoeUIVariable, 12", padx=10)
+            laboutmbar_btn.config(text = "Acerca de", font="SegoeUIVariable, 12")
             laboutmbar.entryconfigure(0, label="❔  Como Iniciar Sesion?", font="SegoeUIVariable, 12", command=login_help_esp)
             laboutmbar.entryconfigure(2, label="📝  Registro de Cambios", font="SegoeUIVariable, 12", command=changelog_esp)
             laboutmbar.entryconfigure(3, label="❕  Acerca del Programa", font="SegoeUIVariable, 12", command=about_esp)
 
+            welcome_login.config(text="Inicia Sesion con tu Cuenta", font="SegoeUIVariable, 17")
+            welcome_login.place(x=140)
             username_label.config(text="Nombre de Usuario:", font="SegoeUIVariable, 12")
             password_label.config(text="Contraseña:", font="SegoeUIVariable, 12")
             changeaccountlb.config(text="👤 Configuracion de la Cuenta", font="SegoeUIVariable, 12")
@@ -278,12 +541,12 @@ def DWI():
                 writer.writerows(settingdata)
                 settingfile.seek(0, 2)
 
-            mainmbar_btn.config(text = "Main", font="SegoeUIVariable, 12", padx=10)	
+            mainmbar_btn.config(text = "Main", font="SegoeUIVariable, 12")	
             mainmbar.entryconfigure(0, label="📂  Show (Exported) Folder", font="SegoeUIVariable, 12")	
             mainmbar.entryconfigure(1, label="💾  Export Inventory to Text File", font="SegoeUIVariable, 12")		
             mainmbar.entryconfigure(3, label="🔐  Sign-Out", font="SegoeUIVariable, 12", command=signout_ask_eng)
 
-            aboutmbar_btn.config(text = "About", font="SegoeUIVariable, 12", padx=10, pady=6)
+            aboutmbar_btn.config(text = "About", font="SegoeUIVariable, 12")
             aboutmbar_btn.place(x=100)	
             aboutmbar.entryconfigure(0, label="❔  How to use This Program?", font="SegoeUIVariable, 12", command=main_help_eng)
             aboutmbar.entryconfigure(2, label="📝  ChangeLog", font="SegoeUIVariable, 12", command=changelog_eng)
@@ -360,12 +623,12 @@ def DWI():
                 writer.writerows(settingdata)
                 settingfile.seek(0, 2)
 
-            mainmbar_btn.config(text = "Principal", font="SegoeUIVariable, 12", padx=10)
+            mainmbar_btn.config(text = "Principal", font="SegoeUIVariable, 12")
             mainmbar.entryconfigure(0, label="📂  Mostrar Carpeta (Exported)", font="SegoeUIVariable, 12")	
             mainmbar.entryconfigure(1, label="💾  Exportar Inventario en el Archivo de Texto", font="SegoeUIVariable, 12")
             mainmbar.entryconfigure(3, label="🔐  Cerrar Sesion", font="SegoeUIVariable, 12", command=signout_ask_esp)
 
-            aboutmbar_btn.config(text = "Acerca de", font="SegoeUIVariable, 12", padx=10)	
+            aboutmbar_btn.config(text = "Acerca de", font="SegoeUIVariable, 12")	
             aboutmbar_btn.place(x=100)	
             aboutmbar.entryconfigure(0, label="❔  Como usar Este Programa?", font="SegoeUIVariable, 12", command=main_help_esp)
             aboutmbar.entryconfigure(2, label="📝  Registro de Cambios", font="SegoeUIVariable, 12", command=changelog_esp)
@@ -537,7 +800,7 @@ def DWI():
             window_w_total = dynamic_window.winfo_screenwidth()
             window_h_total = dynamic_window.winfo_screenheight()
             window_w = 550
-            window_h = 360
+            window_h = 410
             login_width = round(window_w_total/2-window_w/2)
             login_height = round(window_h_total/2-window_h/2-100)
             dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
@@ -648,7 +911,7 @@ def DWI():
         def changeaccount_eng():
             changeaccount_msg.title("Account Settings")
 
-            changeaccount_msg_lbm.config(text="Select one of the options\nto change your account information", font="SegoeUIVariable, 12")
+            changeaccount_msg_lbm.config(text="Select one of the options\nto change your account information.", font="SegoeUIVariable, 12")
             changeaccount_msg_lbm.place(x=69, y=25)
 
             changeusername_btn.config(text="👤 Change Username       ", font="SegoeUIVariable, 12", padx=88, pady=3, width=3, cursor="hand2", command=changeusername)
@@ -663,7 +926,7 @@ def DWI():
         def changeaccount_esp():
             changeaccount_msg.title("Configuracion de la Cuenta")
 
-            changeaccount_msg_lbm.config(text="Selecciona una de las opciones\npara cambiar información de tu cuenta", font="SegoeUIVariable, 12")
+            changeaccount_msg_lbm.config(text="Selecciona una de las opciones\npara cambiar información de tu cuenta.", font="SegoeUIVariable, 12")
             changeaccount_msg_lbm.place(x=56, y=25)
 
             changeusername_btn.config(text="👤 Cambiar Nombre de Usuario               ", font="SegoeUIVariable, 12", padx=135, pady=3, width=3, cursor="hand2", command=changeusername)
@@ -688,6 +951,18 @@ def DWI():
         basics_btn_ok = tk.Button(basics_msg, text="✅ OK", padx=15, pady=3, width=3, font="SegoeUIVariable, 12")
         basics_btn_yes = tk.Button(basics_msg, padx=15, pady=3, width=3, font="SegoeUIVariable, 12")
         basics_btn_no = tk.Button(basics_msg, padx=15, pady=3, width=3, font="SegoeUIVariable, 12")
+        info_bf_lb = tk.Label(basics_msg)
+        info_af_lb = tk.Label(basics_msg)
+        id_inf = tk.Label(basics_msg, font=("SegoeUIVariable", 11, "bold"))
+        brand_bf = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        model_bf = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        color_bf = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        date_bf = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        brand_af = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        model_af = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        color_af = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+        date_af = tk.Label(basics_msg, font="SegoeUIVariable, 11")
+
 
         basics_w_total = dynamic_window.winfo_screenwidth()
         basics_h_total = dynamic_window.winfo_screenheight()
@@ -700,7 +975,6 @@ def DWI():
         # ========== LOAD CHANGEACCOUNT WINDOW ========== #
         changeaccount_msg = tk.Toplevel(dynamic_window)
         changeaccount_msg.withdraw()
-        changeaccount_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
 
         changeaccount_btn_back = tk.Button(changeaccount_msg, width=3, height=1)
         changeaccount_frame = tk.Frame(changeaccount_msg, height=1, bd=0)
@@ -727,22 +1001,11 @@ def DWI():
             basics_msg.grab_release()
             basics_msg.transient(None)
             basics_msg.withdraw()
+            basics_msg_lb.place_forget()
+            basics_imglb.place_forget()
             basics_btn_ok.place_forget()
             basics_btn_yes.place_forget()
             basics_btn_no.place_forget()
-
-        def hide_error_msg():
-            restore_elements()
-            basics_msg.grab_release()
-            basics_msg.transient(None)
-            basics_msg.withdraw()
-            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
-                settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
-                accountfile.write("admin,12345\n")
-            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
-                inventoryfile.write("")
-            sys.exit(0)
 
         def hide_changeaccount_msg():
             restore_elements()
@@ -792,6 +1055,8 @@ def DWI():
             changeaccount_msg.focus_set()
 
         def resetaccount():
+            if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
+                os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
             with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
                 accountfile.write("admin,12345\n")
             lang_value = languagegroup.get()
@@ -813,45 +1078,53 @@ def DWI():
                 changeaccount_btn_change.config(state="normal", cursor="hand2", command=change_passworddata)
 
         def change_userdata():
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
-                accountreader = csv.reader(accountfile, delimiter=",")
-                accountdata = list(accountreader)
-            actualusername = actual_username.get()
-            newusername = new_username.get()
-            if accountdata[0][0] == actualusername.lower() and accountdata[0][1] == actual_password.get():
-                for row in accountdata:
-                    if row[0] == actualusername.lower() or row[1] == actual_password.get():
-                        row[0] = newusername.lower()
-                        break 
-                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w", newline="") as file:
-                    writer = csv.writer(file)
-                    writer.writerows(accountdata)
-                    file.seek(0, 2)
-                changeaccount_back()
-                if device_imglb.winfo_ismapped():
-                    dynamic_window.title("Device Warehouse Inventory ("+newusername.lower()+")")
-                changeusername_correct_msg()
-            else:
-                changeaccount_error_msg()
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                    accountreader = csv.reader(accountfile, delimiter=",")
+                    accountdata = list(accountreader)
+                actualusername = actual_username.get()
+                newusername = new_username.get()
+                if accountdata[0][0] == actualusername.lower() and accountdata[0][1] == actual_password.get():
+                    for row in accountdata:
+                        if row[0] == actualusername.lower() or row[1] == actual_password.get():
+                            row[0] = newusername.lower()
+                            break 
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerows(accountdata)
+                        file.seek(0, 2)
+                    changeaccount_back()
+                    if device_imglb.winfo_ismapped():
+                        dynamic_window.title("Device Warehouse Inventory ("+newusername.lower()+")")
+                    changeusername_correct_msg()
+                else:
+                    changeaccount_error_msg()
+            except FileNotFoundError:
+                error_wn()
+                loadfile_error_msg()
 
         def change_passworddata():
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
-                accountreader = csv.reader(accountfile, delimiter=",")
-                accountdata = list(accountreader)
-            actualusername = actual_username.get()
-            if accountdata[0][0] == actualusername.lower() and accountdata[0][1] == actual_password.get():
-                for row in accountdata:
-                    if row[0] == actualusername.lower() or row[1] == actual_password.get():
-                        row[1] = new_password.get()
-                        break 
-                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w", newline="") as file:
-                    writer = csv.writer(file)
-                    writer.writerows(accountdata)
-                    file.seek(0, 2)
-                changeaccount_back()
-                changepassword_correct_msg()
-            else:
-                changeaccount_error_msg()
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                    accountreader = csv.reader(accountfile, delimiter=",")
+                    accountdata = list(accountreader)
+                actualusername = actual_username.get()
+                if accountdata[0][0] == actualusername.lower() and accountdata[0][1] == actual_password.get():
+                    for row in accountdata:
+                        if row[0] == actualusername.lower() or row[1] == actual_password.get():
+                            row[1] = new_password.get()
+                            break 
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w", newline="") as file:
+                        writer = csv.writer(file)
+                        writer.writerows(accountdata)
+                        file.seek(0, 2)
+                    changeaccount_back()
+                    changepassword_correct_msg()
+                else:
+                    changeaccount_error_msg()
+            except FileNotFoundError:
+                error_wn()
+                loadfile_error_msg()
 
         # ============================================== LOAD/HIDE MSG WINDOWS ============================================== #
         # ========== CHANGE USERNAME WINDOW ========== #
@@ -966,1380 +1239,1548 @@ def DWI():
 
         # ========== CHANGE ACCOUNT ERROR MSG ========== #
         def changeaccount_error_msg():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                window_w = 417  
-            elif lang_value == 2:
-                window_w = 495  
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())    
-            if new_username.winfo_ismapped():
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
                 lang_value = languagegroup.get()
+                if lang_value == 1:
+                    window_w = 417  
+                elif lang_value == 2:
+                    window_w = 495  
+                window_h = 175
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())    
+                if new_username.winfo_ismapped():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        basics_msg.title("Change Username")
+                    elif lang_value == 2:
+                        basics_msg.title("Cambiar Nombre de Usuario")
+                if new_password.winfo_ismapped():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        basics_msg.title("Change Password")
+                    elif lang_value == 2:
+                        basics_msg.title("Cambiar Contraseña")   
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                actualusername = actual_username.get()
+                if not accountdata[0][0] == actualusername.lower():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        basics_msg_lb.config(justify="center", text="Your Username/Password is incorrect!", font="SegoeUIVariable, 12")
+                    elif lang_value == 2:
+                        basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario/Contraseña es incorrecto!", font="SegoeUIVariable, 12")
+                if not accountdata[0][1] == actual_password.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        basics_msg_lb.config(justify="center", text="Your Username/Password is incorrect!", font="SegoeUIVariable, 12")
+                    elif lang_value == 2:
+                        basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario/Contraseña es incorrecto!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
+                basics_btn_ok.config(command=hide_reset_msg)
+                if lang_value == 1:
+                    basics_btn_ok.place(x=177, y=125)
+                elif lang_value == 2:
+                    basics_btn_ok.place(x=216, y=125)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
+
+        # ========== CHANGE USERNMAME CORRECT MSG ========== #
+        def changeusername_correct_msg():
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                lang_value = languagegroup.get()
+                if lang_value == 1:
+                    window_w = 417
+                elif lang_value == 2:
+                    window_w = 447
+                window_h = 175
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg()) 
                 if lang_value == 1:
                     basics_msg.title("Change Username")
                 elif lang_value == 2:
-                    basics_msg.title("Cambiar Nombre de Usuario")
-            if new_password.winfo_ismapped():
+                    basics_msg.title("Cambiar Nombre de Usuario")  
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
+                if lang_value == 1:
+                    basics_msg_lb.config(justify="center", text="Your Username has been CHANGED!", font="SegoeUIVariable, 12")
+                elif lang_value == 2:
+                    basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario se ha CAMBIADO!", font="SegoeUIVariable, 12")
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.place(x=120, y=57)
+
+                basics_btn_ok.config(command=hide_reset_msg)
+                if lang_value == 1:
+                    basics_btn_ok.place(x=177, y=125)
+                elif lang_value == 2:
+                    basics_btn_ok.place(x=192, y=125)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
+
+        # ========== CHANGE PASSWORD CORRECT MSG ========== #
+        def changepassword_correct_msg():
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                lang_value = languagegroup.get()
+                if lang_value == 1:
+                    window_w = 417 
+                elif lang_value == 2:
+                    window_w = 393 
+                window_h = 175
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg()) 
                 lang_value = languagegroup.get()
                 if lang_value == 1:
                     basics_msg.title("Change Password")
                 elif lang_value == 2:
-                    basics_msg.title("Cambiar Contraseña")   
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            actualusername = actual_username.get()
-            if not accountdata[0][0] == actualusername.lower():
+                    basics_msg.title("Cambiar Contraseña")    
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
                 lang_value = languagegroup.get()
                 if lang_value == 1:
-                    basics_msg_lb.config(justify="center", text="Your Username/Password is incorrect!", font="SegoeUIVariable, 12")
+                    basics_msg_lb.config(justify="center", text="Your Password has been CHANGED!", font="SegoeUIVariable, 12")
                 elif lang_value == 2:
-                    basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario/Contraseña es incorrecto!", font="SegoeUIVariable, 12")
-            if not accountdata[0][1] == actual_password.get():
-                lang_value = languagegroup.get()
+                    basics_msg_lb.config(justify="center", text="Tu Contraseña se ha CAMBIADO!", font="SegoeUIVariable, 12")
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.place(x=120, y=57)
+
+                basics_btn_ok.config(command=hide_reset_msg)
                 if lang_value == 1:
-                    basics_msg_lb.config(justify="center", text="Your Username/Password is incorrect!", font="SegoeUIVariable, 12")
+                    basics_btn_ok.place(x=177, y=125)
                 elif lang_value == 2:
-                    basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario/Contraseña es incorrecto!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
-            basics_btn_ok.config(command=hide_reset_msg)
-            if lang_value == 1:
-                basics_btn_ok.place(x=177, y=125)
-            elif lang_value == 2:
-                basics_btn_ok.place(x=216, y=125)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
-
-        # ========== CHANGE USERNMAME CORRECT MSG ========== #
-        def changeusername_correct_msg():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                window_w = 417
-            elif lang_value == 2:
-                window_w = 447
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
-
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg()) 
-            if lang_value == 1:
-                basics_msg.title("Change Username")
-            elif lang_value == 2:
-                basics_msg.title("Cambiar Nombre de Usuario")  
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            if lang_value == 1:
-                basics_msg_lb.config(justify="center", text="Your Username has been CHANGED!", font="SegoeUIVariable, 12")
-            elif lang_value == 2:
-                basics_msg_lb.config(justify="center", text="Tu Nombre de Usuario se ha CAMBIADO!", font="SegoeUIVariable, 12")
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.place(x=120, y=57)
-
-            basics_btn_ok.config(command=hide_reset_msg)
-            if lang_value == 1:
-                basics_btn_ok.place(x=177, y=125)
-            elif lang_value == 2:
-                basics_btn_ok.place(x=192, y=125)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
-
-        # ========== CHANGE PASSWORD CORRECT MSG ========== #
-        def changepassword_correct_msg():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                window_w = 417 
-            elif lang_value == 2:
-                window_w = 393 
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
-
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg()) 
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                basics_msg.title("Change Password")
-            elif lang_value == 2:
-                basics_msg.title("Cambiar Contraseña")    
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                basics_msg_lb.config(justify="center", text="Your Password has been CHANGED!", font="SegoeUIVariable, 12")
-            elif lang_value == 2:
-                basics_msg_lb.config(justify="center", text="Tu Contraseña se ha CAMBIADO!", font="SegoeUIVariable, 12")
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.place(x=120, y=57)
-
-            basics_btn_ok.config(command=hide_reset_msg)
-            if lang_value == 1:
-                basics_btn_ok.place(x=177, y=125)
-            elif lang_value == 2:
-                basics_btn_ok.place(x=165, y=125)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                    basics_btn_ok.place(x=165, y=125)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== RESET ACCOUNT MSG ENGLISH ========== #
         def resetaccount_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 290
-            window_h = 225
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 290
+                window_h = 225
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())
-            basics_msg.title("Reset Default Account")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/remember.png"))
-            basics_imglb.place(x=15, y=20)
-            basics_msg_lb.config(justify="center", text="Default Account:\n\nUsername: admin\nPassword: 12345", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20)
-            changeaccount_btn_reset.config(text="🔁 Reset to Default", padx=60, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
-            changeaccount_btn_reset.place(x=65, y=120)
-            basics_btn_ok.config(text="❎ Close", padx=35, pady=3, width=3) #pady 15
-            basics_btn_ok.config(command=hide_reset_msg)
-            basics_btn_ok.place(x=89, y=175)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())
+                basics_msg.title("Reset Default Account")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/remember.png"))
+                basics_imglb.place(x=15, y=20)
+                basics_msg_lb.config(justify="center", text="Default Account:\n\nUsername:  >   admin\nPassword:  >   12345", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=100, y=20)
+                changeaccount_btn_reset.config(text="🔁 Reset to Default", padx=60, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
+                changeaccount_btn_reset.place(x=65, y=120)
+                basics_btn_ok.config(text="❎ Close", padx=35, pady=3, width=3) #pady 15
+                basics_btn_ok.config(command=hide_reset_msg)
+                basics_btn_ok.place(x=89, y=175)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== RESET ACCOUNT MSG SPANISH ========== #
         def resetaccount_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 345
-            window_h = 225
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 355
+                window_h = 225
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())
-            basics_msg.title("Restablecer Cuenta Predeterminada")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/remember.png"))
-            basics_imglb.place(x=15, y=20)
-            basics_msg_lb.config(justify="center", text="Cuenta Predeterminada:\n\nNombre de Usuario: admin\nContraseña: 12345", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_reset_msg())
+                basics_msg.title("Restablecer Cuenta Predeterminada")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/remember.png"))
+                basics_imglb.place(x=20, y=20)
+                basics_msg_lb.config(justify="center", text="Cuenta Predeterminada:\n\nNombre de Usuario:  >  admin\nContraseña:               >  12345", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=105, y=20)
 
-            changeaccount_btn_reset.config(text="🔁 Restablecer a Predeterminado", padx=110, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
-            changeaccount_btn_reset.place(x=45, y=120)
-            basics_btn_ok.config(text="❎ Cerrar", padx=35, pady=3, width=3) #pady 15
-            basics_btn_ok.config(command=hide_reset_msg)
-            basics_btn_ok.place(x=119, y=175)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                changeaccount_btn_reset.config(text="🔁 Restablecer a Predeterminado", padx=110, pady=3, width=3, font="SegoeUIVariable, 12", cursor="hand2", state="normal", command=resetaccount) 
+                changeaccount_btn_reset.place(x=50, y=120)
+                basics_btn_ok.config(text="❎ Cerrar", padx=35, pady=3, width=3) #pady 15
+                basics_btn_ok.config(command=hide_reset_msg)
+                basics_btn_ok.place(x=124, y=175)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== CHANGEACCOUNT MSG ========== #
         def changeaccount():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 390
-            window_h = 350
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            changeaccount_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 390
+                window_h = 350
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                changeaccount_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            changeaccount_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/changeaccount.ico"))
-            changeaccount_msg.protocol("WM_DELETE_WINDOW", lambda: hide_changeaccount_msg())
-            changeaccount_msg.resizable(width=False, height=False)
-            changeaccount_msg.grab_set()
-            changeaccount_msg.focus_set()
-            if loginprofile_imglb.winfo_ismapped():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    resetaccount_btn.place(x=87, y=213)
-                elif lang_value == 2:
-                    resetaccount_btn.place(x=40, y=213)
-            changeaccount_btn_close.config(padx=35, pady=3, width=3, cursor="hand2", command=hide_changeaccount_msg)
-            changeaccount_btn_close.place(x=138, y=300)
-            changeaccount_btn_change.config(padx=35, pady=3, width=3, state="disabled", cursor="arrow")
-            changeaccount_msg.transient(dynamic_window)
-            changeaccount_msg.deiconify()
+                off_elements_msg()
+                changeaccount_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/changeaccount.ico"))
+                changeaccount_msg.protocol("WM_DELETE_WINDOW", lambda: hide_changeaccount_msg())
+                changeaccount_msg.resizable(width=False, height=False)
+                changeaccount_msg.grab_set()
+                changeaccount_msg.focus_set()
+                if loginprofile_imglb.winfo_ismapped():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        resetaccount_btn.place(x=87, y=213)
+                    elif lang_value == 2:
+                        resetaccount_btn.place(x=40, y=213)
+                changeaccount_btn_close.config(padx=35, pady=3, width=3, cursor="hand2", command=hide_changeaccount_msg)
+                changeaccount_btn_close.place(x=138, y=300)
+                changeaccount_btn_change.config(padx=35, pady=3, width=3, state="disabled", cursor="arrow")
+                changeaccount_msg.transient(dynamic_window)
+                changeaccount_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== CHANGELOG MSG ENGLISH ========== #
         def changelog_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 445
-            window_h = 425
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 535 
+                window_h = 450 
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Changelog in this Version")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
-            basics_imglb.place(x=153, y=5)
-            basics_msg_lb.config(justify="left", text="================  CHANGELOG  ================\n\n          <<<<<   VERSION 2.3 (12-NOV-2023)   >>>>>\n\n- In-Code Optimizations.\n- Improved Minor Language Tranlations.\n- Improved Minor UI in Account Settings.\n- Various UI Tweaks and Icons Added.\n\n                          Developed By Eliezer Brito\n                                  © Elie-Dev (2023)\n                                  All rights reserved", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=17, y=140)
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=190, y=375)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Changelog in this Version")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
+                basics_imglb.place(x=198, y=5)
+                basics_msg_lb.config(justify="left", text="=====================  CHANGELOG  =====================\n\n                     <<<<<   VERSION 2.4 (21-FEB-2024)   >>>>>\n\n- Minor UI Tweaks.\n- Improved Some Dialog Window in Edit Mode and Delete Mode.\n- Deleted Date Entry in Add Mode (Now it will take the Date of the O.S).\n- Improved Error Window Program Logic.\n- Minor Improvements and Bugs Fixes.\n\n                                     Developed By Eliezer Brito\n                                             © Elie-Dev (2024)\n                                             All rights reserved", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=17, y=140)
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=235, y=400)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== CHANGELOG MSG SPANISH ========== #
         def changelog_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 445
-            window_h = 425
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 745 #445
+                window_h = 450 #410
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Registro de Cambios en esta Version")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
-            basics_imglb.place(x=154, y=5)
-            basics_msg_lb.config(justify="left", text="=============  Registro de Cambios  =============\n\n          <<<<<   VERSION 2.3 (12-NOV-2023)   >>>>>\n\n- Optimizaciones en el Codigo.\n- Mejoras Menores en la Traduccion del Idioma.\n- Mejoras Menores en la IU de Configuracion de la Cuenta.\n- Varios Ajustes en la IU e Iconos Agregados.\n\n                          Desarrollado por Eliezer Brito\n                                  © Elie-Dev (2023)\n                       Todos los Derechos Reservados", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=17, y=140)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Registro de Cambios en esta Version")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/changelog.png"))
+                basics_imglb.place(x=304, y=5)
+                basics_msg_lb.config(justify="left", text="==============================  Registro de Cambios  ==============================\n\n                                                <<<<<   VERSION 2.4 (21-FEB-2024)   >>>>>\n\n- Modificaciones Menores en la Interfaz de Usuario.\n- Se mejoro algunas Ventanas de Dialogo en el Modo Editar y Modo Eliminar.\n- El Campo de Texto (Fecha) se ha Eliminado para el Modo Agregar (Ahora tomara la Fecha del S.O.\n- Se Mejoro la Logica de las Ventanas de Error.\n- Mejoras Menores y Errores Corregidos.\n\n                                                                Desarrollado por Eliezer Brito\n                                                                        © Elie-Dev (2024)\n                                                             Todos los Derechos Reservados", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=17, y=140)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=188, y=375)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=338, y=400)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ABOUT MSG ========== #
         def about_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 308
-            window_h = 390
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 308
+                window_h = 390
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("About the Program")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
-            basics_imglb.place(x=90, y=5)
-            basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.3\n\nThis Program is to Add, Edit or Delete \nDevice information in the Inventory \nfrom the Local DataBase.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2023)\nAll rights reserved", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=17, y=140)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("About the Program")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
+                basics_imglb.place(x=90, y=5)
+                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.4\n\nThis Program is to Add, Edit or Delete \nDevice information in the Inventory \nfrom the Local DataBase.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2024)\nAll rights reserved", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=17, y=140)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=122, y=340)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=122, y=340)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ABOUT MSG SPANISH ========== #
         def about_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 390
-            window_h = 390
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 390
+                window_h = 390
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Acerca del Programa")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
-            basics_imglb.place(x=132, y=5)
-            basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.3\n\nEste Programa es para Agregar, Editar o Eliminar \nInformacion del Dispositivo en el Inventario \nde la Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n © Elie-Dev (2023) \nTodos los Derechos Reservados", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=17, y=140)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Acerca del Programa")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/about.png"))
+                basics_imglb.place(x=132, y=5)
+                basics_msg_lb.config(justify="center", text="Device Warehouse Inventory\nVersion: 2.4\n\nEste Programa es para Agregar, Editar o Eliminar \nInformacion del Dispositivo en el Inventario \nde la Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n © Elie-Dev (2024) \nTodos los Derechos Reservados", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=17, y=140)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=340)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=340)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== HELP LOGIN MSG ENGLISH ========== #
         def login_help_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 460
-            window_h = 210
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 460
+                window_h = 210
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("How to Sign-In?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Type your username and password, \nif the data is correct the application will start, \notherwise you will receive an error message.\n\nIf you still have problems logging in, \nPlease notify the Developer.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("How to Sign-In?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Type your username and password, \nif the data is correct the application will start, \notherwise you will receive an error message.\n\nIf you still have problems logging in, \nPlease notify the Developer.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=20)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=198, y=160)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=198, y=160)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== HELP LOGIN MSG SPANISH ========== #
         def login_help_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 475
-            window_h = 210
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 475
+                window_h = 210
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Como Iniciar Sesion?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Escribe tu Nombre de Usuario y Contraseña, \nsi los datos son correctos la aplicacion iniciara, \nde lo contrario recibiras un mensaje de error.\n\nSi aun tienes problemas para iniciar sesion, \nPor Favor Contacta al Desarrollador.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20) 
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Como Iniciar Sesion?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Escribe tu Nombre de Usuario y Contraseña, \nsi los datos son correctos la aplicacion iniciara, \nde lo contrario recibiras un mensaje de error.\n\nSi aun tienes problemas para iniciar sesion, \nPor Favor Contacta al Desarrollador.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=20) 
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=208, y=160)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=208, y=160)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
                 
         # ========== LOGIN ERROR MSG ENGLISH ========== #
         def login_error_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 393
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 393
+                window_h = 175
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Failed to Login")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Your Account is incorrect or invalid!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Failed to Login")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Your Account is incorrect or invalid!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=125)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=125)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== LOGIN ERROR MSG SPANISH ========== #
         def login_error_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 393
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 393
+                window_h = 175
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Error al Iniciar Sesion")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Tu Cuenta es Incorrecta o Invalida!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Error al Iniciar Sesion")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/error.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Tu Cuenta es Incorrecta o Invalida!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=125)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
-
-        # ========== FATAL ERROR MSG ENGLISH ========== #
-        def fatal_error_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 533
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
-            dynamic_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
-            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(dynamic_height))
-            dynamic_window.deiconify()
-            basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
-
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_error_msg())    
-            basics_msg.title("An error has occurred!")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Corrupt Files have been found inside the Folder (Data).\n\nThe program will restore the Default Settings.\nRe-Open the Program!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=30)
-
-            basics_btn_ok.config(command=hide_error_msg)
-            basics_btn_ok.place(x=235, y=125)
-            basics_msg.transient(dynamic_window)
-            dynamic_window.withdraw()
-            basics_msg.deiconify()
-
-        # ========== FATAL ERROR MSG SPANISH ========== #
-        def fatal_error_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 615
-            window_h = 175
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
-            dynamic_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
-            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(dynamic_height))
-            dynamic_window.deiconify()
-            basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
-
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_error_msg())    
-            basics_msg.title("Ha ocurrido un Error!")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Se han encontrado Archivos Corruptos dentro de la Carpeta (Data).\n\nEl programa restaurará la Configuración Predeterminada.\nVuelva Abrir el Programa!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=30)
-
-            basics_btn_ok.config(command=hide_error_msg)
-            basics_btn_ok.place(x=275, y=125)
-            basics_msg.transient(dynamic_window)
-            dynamic_window.withdraw()
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=125)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # =============================================================================================================================
         # ========== HELP MAIN MSG ENGLISH ========== #
         def main_help_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 445
-            window_h = 185
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 445
+                window_h = 185
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("How to use This Program?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="To start, select one of the available options \nat the top to open each mode.\n\nIf you still have problems, \nPlease notify the Developer.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("How to use This Program?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="To start, select one of the available options \nat the top to open each mode.\n\nIf you still have problems, \nPlease notify the Developer.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=20)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=185, y=135)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=185, y=135)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== HELP MAIN MSG SPANISH ========== #
         def main_help_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 480
-            window_h = 185
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 480
+                window_h = 185
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Como usar Este Programa?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Para empezar, selecciona una de las opciones \ndisponibles en la parte superior de cada modo.\n\nSi aun tienes problemas, \nPor Favor Contacta al Desarrollador.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=20)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Como usar Este Programa?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/helplogin.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Para empezar, selecciona una de las opciones \ndisponibles en la parte superior de cada modo.\n\nSi aun tienes problemas, \nPor Favor Contacta al Desarrollador.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=20)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=210, y=135)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=210, y=135)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD MODE HELP MSG ENGLISH ========== #
         def addmode_help_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 368
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 368
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("How to use ➕ Add Mode?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="To start, fill in the text fields and \npress the [➕ Add ] button.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=48)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("How to use ➕ Add Mode?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="To start, fill in the text fields and \npress the [➕ Add ] button.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=48)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=153, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=153, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD MODE HELP MSG SPANISH ========== #
         def addmode_help_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 450
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 450
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Como usar el ➕ Modo Agregar?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Para empezar, llena los campos de texto y \npresiona el Boton [➕ Agregar ].", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=48)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Como usar el ➕ Modo Agregar?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Para empezar, llena los campos de texto y \npresiona el Boton [➕ Agregar ].", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=48)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=193, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=193, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT MODE HELP MSG ENGLISH ========== #
         def editmode_help_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 387
-            window_h = 180
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 387
+                window_h = 180
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("How to use ✏️ Edit Mode?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="To start, type the correct ID, \npress the [🔎 Check ] button,\nthen choose the text field(s) to edit \nand press the [✏️ Edit ] button.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=30)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("How to use ✏️ Edit Mode?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="To start, type the correct ID, \npress the [🔎 Check ] button,\nthen choose the text field(s) to edit \nand press the [✏️ Edit ] button.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=30)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=154, y=130)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=154, y=130)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT MODE HELP MSG SPANISH ========== #
         def editmode_help_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 444
-            window_h = 180
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 444
+                window_h = 180
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Como usar el ✏️ Modo Editar?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Para empezar, escribe el ID correcto, \npresiona el Boton [🔎 Comprobar ],\nluego elige el/los campos de texto a editar \ny presiona el Boton [✏️ Editar ].", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=30)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Como usar el ✏️ Modo Editar?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Para empezar, escribe el ID correcto, \npresiona el Boton [🔎 Comprobar ],\nluego elige el/los campos de texto a editar \ny presiona el Boton [✏️ Editar ].", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=30)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=190, y=130)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=190, y=130)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
             
         # ========== DELETE MODE HELP MSG ENGLISH ========== #
         def deletemode_help_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 385
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 385
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("How can use ➖ Delete Mode")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="To start, type the correct ID \nand press the [➖ Delete ] button.", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=48)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("How can use ➖ Delete Mode")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="To start, type the correct ID \nand press the [➖ Delete ] button.", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=48)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=161, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=161, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE MODE HELP SPANISH ========== #
         def deletemode_help_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 410
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 410
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Como usar el ➖ Modo Eliminar?")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Para empezar, escribe el ID correcto \ny presiona el Boton [➖ Eliminar ].", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=48)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Como usar el ➖ Modo Eliminar?")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Para empezar, escribe el ID correcto \ny presiona el Boton [➖ Eliminar ].", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=48)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=173, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=173, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD PRODUCT SAVE MSG ENGLISH ========== #
         def add_prod_save_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 450
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 450
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Adding to Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Your Product has been ADDED to Inventory!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Adding to Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Your Product has been ADDED to Inventory!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=193, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=193, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD PRODUCT SAVE MSG SPANISH ========== #
         def add_prod_save_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 465
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 465
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Agregando al Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Tu Producto se ha AGREGADO al Inventario!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Agregando al Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Tu Producto se ha AGREGADO al Inventario!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=201, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=201, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD PRODUCT EMPTY MSG ENGLISH ========== #
         def add_prod_empty_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 393
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 393
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Adding to Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Adding to Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== ADD PRODUCT EMPTY MSG SPANISH ========== #
         def add_prod_empty_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 490
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 490
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Agregando al Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Agregando al Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=215, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=215, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT SAVE MSG ENGLISH ========== #
         def edit_prod_save_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 478
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 478
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editing in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Your Product has been EDITED in the Inventory!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editing in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Your Product has been EDITED in the Inventory!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=205, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=205, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT SAVE MSG SPANIHS ========== #
         def edit_prod_save_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 465
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 465
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Tu Producto se ha EDITADO en el Inventario!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/check.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Tu Producto se ha EDITADO en el Inventario!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=201, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=201, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT NOTFOUND MSG ENGLISH ========== #
         def edit_prod_notfound_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 320
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 320
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editing in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="This ID does not EXIST!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editing in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="This ID does not EXIST!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=130, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=130, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT NOTFOUND MSG SPANISH ========== #
         def edit_prod_notfound_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 315
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 315
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Este ID no Existe!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Este ID no Existe!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=128, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=128, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT EMPTY MSG ENGLISH ========== #
         def edit_prod_empty_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 393
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 393
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editing in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editing in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT EMPTY MSG SPANISH ========== #
         def edit_prod_empty_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 490
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 490
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Editando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Editando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=215, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=215, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT ASK MSG ENGLISH ========== #
         def edit_prod_ask_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 480
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 890 
+                window_h = 280 
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: edit_no())    
-            basics_msg.title("Editing in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Are you sure you want to EDIT it from inventory?\nThis action is IRREVERSIBLE!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=50)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: edit_no())    
+                basics_msg.title("Editing in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=90) 
+                basics_msg_lb.config(justify="center", text="Are you sure you want to EDIT it from inventory?\nThis action is IRREVERSIBLE!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=270, y=15) 
+                info_bf_lb.config(justify="center", text="Before:", font=("SegoeUIVariable", 12, "bold"))
+                info_bf_lb.place(x=120, y=70)
+                id_inf.config(fg="#0078FF")
+                id_inf.place(x=120, y=240)
+                brand_bf.place(x=120, y=95)
+                model_bf.place(x=310, y=95)
+                color_bf.place(x=555, y=95)
+                date_bf.place(x=720, y=95)
 
-            basics_btn_yes.config(text="✅ Yes", fg="#0078FF", activeforeground="#0078FF")
-            basics_btn_yes.place(x=160, y=115)
-            basics_btn_no.config(text="❎ No")
-            basics_btn_no.place(x=255, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                info_af_lb.config(justify="center", text="After:", font=("SegoeUIVariable", 12, "bold"))
+                info_af_lb.place(x=120, y=150)
+                brand_af.place(x=120, y=175)
+                model_af.place(x=310, y=175)
+                color_af.place(x=555, y=175)
+                date_af.place(x=720, y=175)
+
+                basics_btn_yes.config(text="✅ Yes", fg="#0078FF", activeforeground="#0078FF")
+                basics_btn_yes.place(x=365, y=230) 
+                basics_btn_no.config(text="❎ No")
+                basics_btn_no.place(x=460, y=230) 
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EDIT PRODUCT ASK MSG SPANISH ========== #
         def edit_prod_ask_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 510
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 890 
+                window_h = 280 
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: edit_no())    
-            basics_msg.title("Editando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Estas Seguro que quieres EDITARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=50)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: edit_no())    
+                basics_msg.title("Editando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=90) 
+                basics_msg_lb.config(justify="center", text="Estas Seguro que quieres EDITARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=270, y=15) 
+                info_bf_lb.config(justify="center", text="Antes:", font=("SegoeUIVariable", 12, "bold"))
+                info_bf_lb.place(x=120, y=70)
+                id_inf.config(fg="#0078FF")
+                id_inf.place(x=120, y=240)
+                brand_bf.place(x=120, y=95)
+                model_bf.place(x=310, y=95)
+                color_bf.place(x=555, y=95)
+                date_bf.place(x=720, y=95)
 
-            basics_btn_yes.config(text="✅ Si", fg="#0078FF", activeforeground="#0078FF")
-            basics_btn_yes.place(x=173, y=115)
-            basics_btn_no.config(text="❎ No")
-            basics_btn_no.place(x=268, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                info_af_lb.config(justify="center", text="Despues:", font=("SegoeUIVariable", 12, "bold"))
+                info_af_lb.place(x=120, y=150)
+                brand_af.place(x=120, y=175)
+                model_af.place(x=310, y=175)
+                color_af.place(x=555, y=175)
+                date_af.place(x=720, y=175)
+
+                basics_btn_yes.config(text="✅ Si", fg="#0078FF", activeforeground="#0078FF")
+                basics_btn_yes.place(x=365, y=230) 
+                basics_btn_no.config(text="❎ No")
+                basics_btn_no.place(x=460, y=230) 
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT DEL MSG ENGLISH ========== #
         def delete_prod_del_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 495
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 495
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Deleting in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Your Product has been DELETED in the Inventory!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Deleting in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Your Product has been DELETED in the Inventory!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=210, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=210, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT DEL MSG SPANISH ========== #
         def delete_prod_del_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 470
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 470
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Eliminando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Tu Profucto ha sido ELIMINADO del Inventario!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Eliminando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Tu Profucto ha sido ELIMINADO del Inventario!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=203, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=203, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT NOTFOUND MSG ENGLISH ========== #
         def delete_prod_notfound_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 325
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 325
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Deleting in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="This ID does not EXIST!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Deleting in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="This ID does not EXIST!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=133, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=133, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT NOTFOUND MSG SPANISH ========== #
         def delete_prod_notfound_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 315
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 315
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Eliminando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Este ID no Existe!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Eliminando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Este ID no Existe!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=128, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=128, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT EMPTY MSG ENGLISH ========== #
         def delete_prod_empty_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 393
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 393
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Deleting in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Deleting in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="You can't leave EMPTY Text Fields!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=165, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=165, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT EMPTY MSG SPANISH ========== #
         def delete_prod_empty_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 490
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 490
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Eliminando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=57)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Eliminando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/warning.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=57)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=215, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=215, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT ASK MSG ENGLISH ========== #
         def delete_prod_ask_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 508
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 890 
+                window_h = 200 
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: del_no())    
-            basics_msg.title("Deleting in the Inventory...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Are you sure you want to DELETE it from inventory?\nThis action is IRREVERSIBLE!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=50)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: del_no())    
+                basics_msg.title("Deleting in the Inventory...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=50) 
+                basics_msg_lb.config(justify="center", text="Are you sure you want to DELETE it from inventory?\nThis action is IRREVERSIBLE!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=270, y=15) 
+                info_bf_lb.config(justify="center", text="Info:", font=("SegoeUIVariable", 12, "bold"))
+                info_bf_lb.place(x=120, y=70)
+                id_inf.config(fg="#EB0000")
+                id_inf.place(x=120, y=160)
+                
+                brand_bf.place(x=120, y=95)
+                model_bf.place(x=310, y=95)
+                color_bf.place(x=555, y=95)
+                date_bf.place(x=720, y=95)
 
-            basics_btn_yes.config(text="✅ Yes", fg="#EB0000", activeforeground="#EB0000")
-            basics_btn_yes.place(x=170, y=115)
-            basics_btn_no.config(text="❎ No")
-            basics_btn_no.place(x=265, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_yes.config(text="✅ Yes", fg="#EB0000", activeforeground="#EB0000")
+                basics_btn_yes.place(x=365, y=150) 
+                basics_btn_no.config(text="❎ No")
+                basics_btn_no.place(x=460, y=150) 
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== DELETE PRODUCT ASK MSG SPANISH ========== #
         def delete_prod_ask_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 530
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 890 
+                window_h = 200 
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: del_no())    
-            basics_msg.title("Eliminando en el Inventario...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Estas Seguro que quieres ELIMINARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=50)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: del_no())    
+                basics_msg.title("Eliminando en el Inventario...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=50) 
+                basics_msg_lb.config(justify="center", text="Estas Seguro que quieres ELIMINARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=270, y=15) 
+                info_bf_lb.config(justify="center", text="Info:", font=("SegoeUIVariable", 12, "bold"))
+                info_bf_lb.place(x=120, y=70)
+                id_inf.config(fg="#EB0000")
+                id_inf.place(x=120, y=160)
+                
+                brand_bf.place(x=120, y=95)
+                model_bf.place(x=310, y=95)
+                color_bf.place(x=555, y=95)
+                date_bf.place(x=720, y=95)
 
-            basics_btn_yes.config(text="✅ Si", fg="#EB0000", activeforeground="#0078FF")
-            basics_btn_yes.place(x=185, y=115)
-            basics_btn_no.config(text="❎ No")
-            basics_btn_no.place(x=280, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_yes.config(text="✅ Si", fg="#EB0000", activeforeground="#EB0000")
+                basics_btn_yes.place(x=365, y=150) 
+                basics_btn_no.config(text="❎ No")
+                basics_btn_no.place(x=460, y=150) 
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EXPORT FILE MSG ENGLISH ========== #
         def export_file_msg_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 513
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 513
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Exporting content to Text Files...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="The contents of the inventory have been EXPORTED \nto Text Files successfully!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=45)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Exporting content to Text Files...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="The contents of the inventory have been EXPORTED \nto Text Files successfully!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=45)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=223, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=223, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== EXPORT FILE MSG SPANISH ========== #
         def export_file_msg_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 493
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 493
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Exportando el Contenido a los Archivos de Textos...")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="El contenido del Inventario ha sido EXPORTADO \na los Archivos de Texto Exitosamente!", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=45)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Exportando el Contenido a los Archivos de Textos...")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/info.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="El contenido del Inventario ha sido EXPORTADO \na los Archivos de Texto Exitosamente!", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=45)
 
-            basics_btn_ok.config(command=hide_basic_msg)
-            basics_btn_ok.place(x=213, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_ok.config(command=hide_basic_msg)
+                basics_btn_ok.place(x=213, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== SIGN-OUT ASK MSG ENGLISH ========== #
         def signout_ask_eng():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 395
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 395
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Sign-Out")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Are you sure you want to Sign-Out?", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=55)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Sign-Out")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Are you sure you want to Sign-Out?", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=55)
 
-            basics_btn_yes.config(text="✅ Yes", fg="#C19300", activeforeground="#C19300", command=signout)
-            basics_btn_yes.place(x=118, y=115)
-            basics_btn_no.config(text="❎ No", command=hide_basic_msg)
-            basics_btn_no.place(x=213, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_yes.config(text="✅ Yes", fg="#C19300", activeforeground="#C19300", command=signout)
+                basics_btn_yes.place(x=118, y=115)
+                basics_btn_no.config(text="❎ No", command=hide_basic_msg)
+                basics_btn_no.place(x=213, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========== SIGN-OUT ASK MSG SPANISH ========== #
         def signout_ask_esp():
-            window_w_total = dynamic_window.winfo_screenwidth()
-            window_h_total = dynamic_window.winfo_screenheight()
-            window_w = 440
-            window_h = 165
-            login_width = round(window_w_total/2-window_w/2)
-            login_height = round(window_h_total/2-window_h/2-100)
-            basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
+            try:
+                window_w_total = dynamic_window.winfo_screenwidth()
+                window_h_total = dynamic_window.winfo_screenheight()
+                window_w = 440
+                window_h = 165
+                login_width = round(window_w_total/2-window_w/2)
+                login_height = round(window_h_total/2-window_h/2-100)
+                basics_msg.geometry(str(window_w)+"x"+str(window_h)+"+"+str(login_width)+"+"+str(login_height))
 
-            off_elements_msg()
-            basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
-            basics_msg.title("Cerrar Sesion")
-            basics_msg.resizable(width=False, height=False)
-            basics_msg.grab_set()
-            basics_msg.focus_set()
-            
-            basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
-            basics_imglb.place(x=15, y=30)
-            basics_msg_lb.config(justify="center", text="Estas Seguro que quieres Cerrar Sesion?", font="SegoeUIVariable, 12")
-            basics_msg_lb.place(x=120, y=55)
+                off_elements_msg()
+                basics_msg.protocol("WM_DELETE_WINDOW", lambda: hide_basic_msg())    
+                basics_msg.title("Cerrar Sesion")
+                basics_msg.resizable(width=False, height=False)
+                basics_msg.grab_set()
+                basics_msg.focus_set()
+                
+                basics_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/ask.png"))
+                basics_imglb.place(x=15, y=30)
+                basics_msg_lb.config(justify="center", text="Estas Seguro que quieres Cerrar Sesion?", font="SegoeUIVariable, 12")
+                basics_msg_lb.place(x=120, y=55)
 
-            basics_btn_yes.config(text="✅ Si", fg="#C19300", activeforeground="#C19300", command=signout)
-            basics_btn_yes.place(x=138, y=115)
-            basics_btn_no.config(text="❎ No", command=hide_basic_msg)
-            basics_btn_no.place(x=233, y=115)
-            basics_msg.transient(dynamic_window)
-            basics_msg.deiconify()
+                basics_btn_yes.config(text="✅ Si", fg="#C19300", activeforeground="#C19300", command=signout)
+                basics_btn_yes.place(x=138, y=115)
+                basics_btn_no.config(text="❎ No", command=hide_basic_msg)
+                basics_btn_no.place(x=233, y=115)
+                basics_msg.transient(dynamic_window)
+                basics_msg.deiconify()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ========================================================================================================= #
         def off_elements_msg(): 
@@ -2418,88 +2859,93 @@ def DWI():
 
         # ========================================================================================================= #
         def signout():
-            dynamic_window.withdraw()
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                eng_lang_login()
-            elif lang_value == 2:
-                esp_lang_login()
-            hide_basic_msg()
+            try:
+                dynamic_window.withdraw()
+                lang_value = languagegroup.get()
+                if lang_value == 1:
+                    eng_lang_login()
+                elif lang_value == 2:
+                    esp_lang_login()
+                hide_basic_msg()
 
-            separator1.place_forget()
-            separator3.place_forget()
-            separator2.place_forget()
+                separator1.place_forget()
+                separator3.place_forget()
+                separator2.place_forget()
 
-            mainmbar_btn.place_forget()
-            aboutmbar_btn.place_forget()
+                mainmbar_btn.place_forget()
+                aboutmbar_btn.place_forget()
 
-            idlb.place_forget()
-            brandlb.place_forget()
-            modellb.place_forget()
-            colorlb.place_forget()
-            datelb.place_forget()
-            inventorylb.place_forget()
-            searchlb.place_forget()
-            foundlb.place_forget()
+                idlb.place_forget()
+                brandlb.place_forget()
+                modellb.place_forget()
+                colorlb.place_forget()
+                datelb.place_forget()
+                inventorylb.place_forget()
+                searchlb.place_forget()
+                foundlb.place_forget()
 
-            id_entry.place_forget()
-            brand_entry.place_forget()
-            model_entry.place_forget()
-            color_entry.place_forget()
-            date_entry.place_forget()
-            search_entry.place_forget()
+                id_entry.place_forget()
+                brand_entry.place_forget()
+                model_entry.place_forget()
+                color_entry.place_forget()
+                date_entry.place_forget()
+                search_entry.place_forget()
 
-            inventory_table.place_forget()
-            table_scrollbar.place_forget()
+                inventory_table.place_forget()
+                table_scrollbar.place_forget()
 
-            addbtn.place_forget()
-            checkbtn.place_forget()
-            editbtn.place_forget()
-            cancelbtn.place_forget()
-            deletebtn.place_forget()
-            clearbtn.place_forget()
-            changeaccount_btn.place_forget()
-            modeshelp_btn.place_forget()
+                addbtn.place_forget()
+                checkbtn.place_forget()
+                editbtn.place_forget()
+                cancelbtn.place_forget()
+                deletebtn.place_forget()
+                clearbtn.place_forget()
+                changeaccount_btn.place_forget()
+                modeshelp_btn.place_forget()
 
-            device_imglb.place_forget()
+                device_imglb.place_forget()
 
-            addrb.place_forget()
-            editrb.place_forget()
-            deleterb.place_forget()
-            
-            setting_btn_apply.config(command=apply_settings_login)
+                addrb.place_forget()
+                editrb.place_forget()
+                deleterb.place_forget()
+                
+                setting_btn_apply.config(command=apply_settings_login)
 
-            username_entry.delete(0, tk.END)
-            password_entry.delete(0, tk.END)
-            
-            dynamic_window.protocol("WM_DELETE_WINDOW", lambda: close())
-            dynamic_window.resizable(width=False, height=False)
-            login_window_place()
-            dynamic_window.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
+                username_entry.delete(0, tk.END)
+                password_entry.delete(0, tk.END)
+                
+                dynamic_window.protocol("WM_DELETE_WINDOW", lambda: close())
+                dynamic_window.resizable(width=False, height=False)
+                login_window_place()
+                dynamic_window.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
 
-            laboutmbar_btn.place(x=0, y=0, height=31, width=100)
-            lmbar_separator.place(x=0, y=31, width=550, height=1)
-            loginprofile_imglb.place(x=225, y=35)
-            username_label.place(x=140, y=145)
-            password_label.place(x=140, y=210)
-            changeaccountlb.place(x=6, y=328)
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                resetaccount_btn.place(x=87, y=213)
-            elif lang_value == 2:
-                resetaccount_btn.place(x=40, y=213)
-            username_entry.place(x=140, y=170, height=30)
-            password_entry.place(x=140, y=235, height=30)
-            loginbtn.place(y=280)
-            infobtn.place(x=507, y=319)
-            settingsbtn.place(x=514, y=0)
-            basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
-            dynamic_window.deiconify()
-            dynamic_window.focus_force()
-            username_entry.focus()
+                laboutmbar_btn.place(x=0, y=0)
+                lmbar_separator.place(x=0, y=31, width=550, height=1)
+                loginprofile_imglb.place(x=225, y=35)
+                welcome_login.place(y=140)
+                username_label.place(x=140, y=185)
+                password_label.place(x=140, y=250)
+                changeaccountlb.place(x=6, y=378)
+                lang_value = languagegroup.get()
+                if lang_value == 1:
+                    resetaccount_btn.place(x=87, y=213)
+                elif lang_value == 2:
+                    resetaccount_btn.place(x=40, y=213)
+                username_entry.place(x=140, y=210, height=30)
+                password_entry.place(x=140, y=275, height=30)
+                loginbtn.place(y=320)
+                infobtn.place(x=507, y=369)
+                settingsbtn.place(x=514, y=0)
+                basics_msg.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/login.ico"))
+                dynamic_window.deiconify()
+                dynamic_window.focus_force()
+                username_entry.focus()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
                 
         def main_window():
-            global username_entry, password_entry, dynamic_window, username
+            global username_entry, password_entry, dynamic_window, username, info_bf, info_af
             username_get = username_entry.get()
             username = username_get.lower()
             try:
@@ -2511,6 +2957,7 @@ def DWI():
                     laboutmbar_btn.place_forget()
                     lmbar_separator.place_forget()
                     loginprofile_imglb.place_forget()
+                    welcome_login.place_forget()
                     username_label.place_forget()
                     password_label.place_forget()
                     changeaccountlb.place_forget()
@@ -2538,7 +2985,6 @@ def DWI():
                         brandlb.place(x=388, y=403)
                         modellb.place(x=388, y=443)
                         colorlb.place(x=388, y=483)
-                        datelb.place(x=388, y=523)
                         inventorylb.place(x=18, y=116)
                         searchlb.place(x=596, y=114)
 
@@ -2551,7 +2997,6 @@ def DWI():
                         brand_entry.place(x=457, y=400, height=30)
                         model_entry.place(x=457, y=439, height=30)
                         color_entry.place(x=457, y=479, height=30)
-                        date_entry.place(x=457, y=519, height=30)
                         search_entry.place(x=623, y=116, height=30)
                         
                     def clear_mw():
@@ -2619,216 +3064,237 @@ def DWI():
                         global rb_selected
                         rb_selected = action.widget
                         if rb_selected.cget("value") == 1:
-                            addrb.select()
-                            device_imglb.place(x=15, y=396)
-                            dynamic_window.geometry("923x585")
-                            device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
-                            device_imglb.config(image=device_img)
-                            clear_mw()
-                            brandlb.config(state="normal")
-                            modellb.config(state="normal")
-                            colorlb.config(state="normal")
-                            datelb.config(state="normal")
-                            brand_entry.config(state="normal", cursor="xterm")
-                            model_entry.config(state="normal", cursor="xterm")
-                            color_entry.config(state="normal", cursor="xterm")
-                            date_entry.config(state="normal", cursor="xterm")
-                            
-                            checkbtn.place_forget()
-                            cancelbtn.place_forget()
-                            editbtn.place_forget()
-                            deletebtn.place_forget()
-                            addbtn.config(cursor="hand2", command=add_inventory)
-                            clearbtn.config(cursor="hand2", command=clear_mw)
-                            addbtn.place(x=763, y=398, width=139)
-                            clearbtn.place(x=763, y=438, width=139)
-                            
-                            lang_value = languagegroup.get()
-                            if lang_value == 1:
-                                modeshelp_btn.config(command=addmode_help_eng)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Search by ID...")
-                            elif lang_value == 2:
-                                modeshelp_btn.config(command=addmode_help_esp)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Buscar por ID...")
+                            try:
+                                addrb.select()
+                                device_imglb.place(x=15, y=396)
+                                dynamic_window.geometry("923x585")
+                                device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
+                                device_imglb.config(image=device_img)
+                                clear_mw()
+                                brandlb.config(state="normal")
+                                modellb.config(state="normal")
+                                colorlb.config(state="normal")
+                                brand_entry.config(state="normal", cursor="xterm")
+                                model_entry.config(state="normal", cursor="xterm")
+                                color_entry.config(state="normal", cursor="xterm")
+                                checkbtn.place_forget()
+                                cancelbtn.place_forget()
+                                editbtn.place_forget()
+                                deletebtn.place_forget()
+                                addbtn.config(cursor="hand2", command=add_inventory)
+                                clearbtn.config(cursor="hand2", command=clear_mw)
+                                addbtn.place(x=763, y=398, width=139)
+                                clearbtn.place(x=763, y=438, width=139)
+                                
+                                lang_value = languagegroup.get()
+                                if lang_value == 1:
+                                    modeshelp_btn.config(command=addmode_help_eng)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Search by ID...")
+                                elif lang_value == 2:
+                                    modeshelp_btn.config(command=addmode_help_esp)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Buscar por ID...")
 
-                            idlb.place_forget()
-                            id_entry.place_forget()
-                            brandlb.config(fg="#00A007")
-                            modellb.config(fg="#00A007")
-                            colorlb.config(fg="#00A007")
-                            datelb.config(fg="#00A007")
-                            brand_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
-                            model_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
-                            color_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2) 
-                            date_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
-                            brand_entry.focus()
-                            brandlb.place(x=388, y=403)
-                            modellb.place(x=388, y=443)
-                            colorlb.place(x=388, y=483)
-                            datelb.place(x=388, y=523)
-                            brand_entry.place(x=457, y=400, height=30)
-                            model_entry.place(x=457, y=439, height=30)
-                            color_entry.place(x=457, y=479, height=30)
-                            date_entry.place(x=457, y=519, height=30)
-                                                
-                            reflesh_inventory()
+                                idlb.place_forget()
+                                id_entry.place_forget()
+                                datelb.place_forget()
+                                date_entry.place_forget()
+                                brandlb.config(fg="#00A007")
+                                modellb.config(fg="#00A007")
+                                colorlb.config(fg="#00A007")
+                                brand_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
+                                model_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
+                                color_entry.config(cursor= "xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2) 
+                                brand_entry.focus()
+                                brandlb.place(x=388, y=403)
+                                modellb.place(x=388, y=443)
+                                colorlb.place(x=388, y=483)
+                                brand_entry.place(x=457, y=400, height=30)
+                                model_entry.place(x=457, y=439, height=30)
+                                color_entry.place(x=457, y=479, height=30)
+                                
+                                reflesh_inventory()
+                            except ValueError:
+                                error_wn()
+                                loaddata_error_msg()
+                            except TclError:
+                                error_wn()
+                                loadfile_error_msg()
 
                         elif rb_selected.cget("value") == 2:
-                            editrb.select()
-                            device_imglb.place(x=15, y=396)
-                            dynamic_window.geometry("923x610")
-                            device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
-                            device_imglb.config(image=device_img)
-                            clear_mw()
-                            brandlb.config(state="disabled")
-                            modellb.config(state="disabled")
-                            colorlb.config(state="disabled")
-                            datelb.config(state="disabled")
-                            brand_entry.config(state="disabled", cursor="arrow")
-                            model_entry.config(state="disabled", cursor="arrow")
-                            color_entry.config(state="disabled", cursor="arrow")
-                            date_entry.config(state="disabled", cursor="arrow")
+                            try:
+                                editrb.select()
+                                device_imglb.place(x=15, y=396)
+                                dynamic_window.geometry("923x610")
+                                device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices1.png"))
+                                device_imglb.config(image=device_img)
+                                clear_mw()
+                                brandlb.config(state="disabled")
+                                modellb.config(state="disabled")
+                                colorlb.config(state="disabled")
+                                datelb.config(state="disabled")
+                                brand_entry.config(state="disabled", cursor="arrow")
+                                model_entry.config(state="disabled", cursor="arrow")
+                                color_entry.config(state="disabled", cursor="arrow")
+                                date_entry.config(state="disabled", cursor="arrow")
 
-                            addbtn.place_forget()
-                            deletebtn.place_forget()
-                            editbtn.config(cursor="hand2", command=edit_inventory)
-                            checkbtn.config(cursor="hand2", command=edit_check_inventory)
-                            cancelbtn.config(cursor="hand2", command=edit_cancel_inventory)
-                            clearbtn.config(cursor="hand2", command=clear_mw)
-                            
-                            checkbtn.place(x=763, y=398, width=139)
-                            clearbtn.place(x=763, y=438, width=139)
-                            editbtn.place_forget()
-
-                            lang_value = languagegroup.get()
-                            if lang_value == 1:
-                                modeshelp_btn.config(command=editmode_help_eng)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Search by ID...")
-                            elif lang_value == 2:
-                                modeshelp_btn.config(command=editmode_help_esp)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Buscar por ID...")
-                            theme_value = themegroup.get()
-                            if theme_value == 1:
-                                id_entry.config(fg="white", insertbackground="white", highlightcolor="#0078FF", highlightbackground="#0078FF", highlightthickness=2, cursor="xterm", state="normal")
-                                brand_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
-                                model_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
-                                color_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
-                                date_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
-                            elif theme_value == 2:
-                                id_entry.config(fg="black", insertbackground="black", highlightcolor="#0078FF", highlightbackground="#0078FF", highlightthickness=2, cursor="xterm", state="normal")
-                                brand_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
-                                model_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
-                                color_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
-                                date_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
+                                addbtn.place_forget()
+                                deletebtn.place_forget()
+                                editbtn.config(cursor="hand2", command=edit_inventory)
+                                checkbtn.config(cursor="hand2", command=edit_check_inventory)
+                                cancelbtn.config(cursor="hand2", command=edit_cancel_inventory)
+                                clearbtn.config(cursor="hand2", command=clear_mw)
                                 
-                            idlb.place(x=388, y=403)
-                            id_entry.place(x=457, y=400, height=30)
+                                checkbtn.place(x=763, y=398, width=139)
+                                clearbtn.place(x=763, y=438, width=139)
+                                editbtn.place_forget()
 
-                            idlb.config(fg="#0078FF")
-                            brandlb.config(fg="#0078FF")
-                            modellb.config(fg="#0078FF")
-                            colorlb.config(fg="#0078FF")
-                            datelb.config(fg="#0078FF")
+                                lang_value = languagegroup.get()
+                                if lang_value == 1:
+                                    modeshelp_btn.config(command=editmode_help_eng)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Search by ID...")
+                                elif lang_value == 2:
+                                    modeshelp_btn.config(command=editmode_help_esp)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Buscar por ID...")
+                                theme_value = themegroup.get()
+                                if theme_value == 1:
+                                    id_entry.config(fg="white", insertbackground="white", highlightcolor="#0078FF", highlightbackground="#0078FF", highlightthickness=2, cursor="xterm", state="normal")
+                                    brand_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
+                                    model_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
+                                    color_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
+                                    date_entry.config(background="#111111", highlightcolor="#292929", highlightbackground="#292929", highlightthickness=2, state="disabled")
+                                elif theme_value == 2:
+                                    id_entry.config(fg="black", insertbackground="black", highlightcolor="#0078FF", highlightbackground="#0078FF", highlightthickness=2, cursor="xterm", state="normal")
+                                    brand_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
+                                    model_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
+                                    color_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
+                                    date_entry.config(background="#F9F9F9", highlightcolor="#C9C9C9", highlightbackground="#C9C9C9", highlightthickness=2, state="disabled")
+                                    
+                                idlb.place(x=388, y=403)
+                                id_entry.place(x=457, y=400, height=30)
 
-                            id_entry.delete(0, tk.END)
-                            id_entry.focus()
-                            brandlb.place(x=388, y=443)
-                            modellb.place(x=388, y=483)
-                            colorlb.place(x=388, y=523)
-                            datelb.place(x=388, y=563)
-                            brand_entry.place(x=457, y=439, height=30)
-                            model_entry.place(x=457, y=479, height=30)
-                            color_entry.place(x=457, y=519, height=30)
-                            date_entry.place(x=457, y=559, height=30)
+                                idlb.config(fg="#0078FF")
+                                brandlb.config(fg="#0078FF")
+                                modellb.config(fg="#0078FF")
+                                colorlb.config(fg="#0078FF")
+                                datelb.config(fg="#0078FF")
 
-                            reflesh_inventory()
+                                id_entry.delete(0, tk.END)
+                                id_entry.focus()
+                                brandlb.place(x=388, y=443)
+                                modellb.place(x=388, y=483)
+                                colorlb.place(x=388, y=523)
+                                datelb.place(x=388, y=563)
+                                brand_entry.place(x=457, y=439, height=30)
+                                model_entry.place(x=457, y=479, height=30)
+                                color_entry.place(x=457, y=519, height=30)
+                                date_entry.place(x=457, y=559, height=30)
+                                reflesh_inventory()
+                            except ValueError:
+                                error_wn()
+                                loaddata_error_msg()
+                            except TclError:
+                                error_wn()
+                                loadfile_error_msg()
 
                         elif rb_selected.cget("value") == 3:
-                            deleterb.select()
-                            device_imglb.place(x=15, y=396)
-                            dynamic_window.geometry("923x490")
-                            device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices2.png"))
-                            device_imglb.config(image=device_img)
-                            addbtn.place_forget()
-                            checkbtn.place_forget()
-                            cancelbtn.place_forget()
-                            editbtn.place_forget()
-                            deletebtn.config(cursor="hand2", command=del_inventory)
-                            clearbtn.config(cursor="hand2", command=clear_mw)
-                            deletebtn.place(x=763, y=398, width=139)
-                            clearbtn.place(x=763, y=438, width=139)
-                            
-                            brandlb.place_forget()
-                            modellb.place_forget()
-                            colorlb.place_forget()
-                            datelb.place_forget()
-                            brand_entry.place_forget()
-                            model_entry.place_forget()
-                            color_entry.place_forget()
-                            date_entry.place_forget()
+                            try:
+                                deleterb.select()
+                                device_imglb.place(x=15, y=396)
+                                dynamic_window.geometry("923x490")
+                                device_img.config(file=os.path.join(os.path.dirname(__file__), "Sources/Imgs/devices2.png"))
+                                device_imglb.config(image=device_img)
+                                addbtn.place_forget()
+                                checkbtn.place_forget()
+                                cancelbtn.place_forget()
+                                editbtn.place_forget()
+                                deletebtn.config(cursor="hand2", command=del_inventory)
+                                clearbtn.config(cursor="hand2", command=clear_mw)
+                                deletebtn.place(x=763, y=398, width=139)
+                                clearbtn.place(x=763, y=438, width=139)
+                                
+                                brandlb.place_forget()
+                                modellb.place_forget()
+                                colorlb.place_forget()
+                                datelb.place_forget()
+                                brand_entry.place_forget()
+                                model_entry.place_forget()
+                                color_entry.place_forget()
+                                date_entry.place_forget()
 
-                            lang_value = languagegroup.get()
-                            if lang_value == 1:
-                                modeshelp_btn.config(command=deletemode_help_eng)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Search by ID...")
-                            elif lang_value == 2:
-                                modeshelp_btn.config(command=deletemode_help_esp)
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Buscar por ID...")
+                                lang_value = languagegroup.get()
+                                if lang_value == 1:
+                                    modeshelp_btn.config(command=deletemode_help_eng)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Search by ID...")
+                                elif lang_value == 2:
+                                    modeshelp_btn.config(command=deletemode_help_esp)
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Buscar por ID...")
 
-                            idlb.place(x=388, y=403)
-                            id_entry.place(x=457, y=400, height=30)
-                            idlb.config(fg="#FE2727")
-                            id_entry.config(fg="#FE2727", insertbackground="#FE2727", highlightcolor="#FE2727", highlightbackground="#FE2727", highlightthickness=2, cursor="xterm", state="normal")
-                            clear_mw()
-                            id_entry.focus()
-
-                            reflesh_inventory()
+                                idlb.place(x=388, y=403)
+                                id_entry.place(x=457, y=400, height=30)
+                                idlb.config(fg="#FE2727")
+                                id_entry.config(fg="#FE2727", insertbackground="#FE2727", highlightcolor="#FE2727", highlightbackground="#FE2727", highlightthickness=2, cursor="xterm", state="normal")
+                                clear_mw()
+                                id_entry.focus()
+                                reflesh_inventory()
+                            except ValueError:
+                                error_wn()
+                                loaddata_error_msg()
+                            except TclError:
+                                error_wn()
+                                loadfile_error_msg()
                     
                     def add_inventory():
                         id_get = id_entry.get()
                         brand_get = brand_entry.get()
                         model_get = model_entry.get()
                         color_get = color_entry.get()
-                        date_get = date_entry.get()
                         id_upper = id_get.upper()
                         brand_upper = brand_get.upper()
                         model_upper = model_get.upper()
                         color_upper = color_get.upper()
-                        date_upper = date_get.upper()       
-                        if "" in id_upper and brand_upper and model_upper and color_upper and date_upper: 
-                            def id_custom():
-                                generated_ids = set()
-                                with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
-                                    for line in file:
-                                        id_number = line.split(",")[0]
-                                        generated_ids.add(id_number)
-                                while True:
-                                    id_number = random.randint(1000000, 9999999)
-                                    if id_number not in generated_ids:
-                                        generated_ids.add(id_number)
-                                        with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "a", newline="") as file:
-                                            writer = csv.writer(file)
-                                            writer.writerow([id_number, brand_upper, model_upper, color_upper, date_upper])
-                                            file.seek(0, 2)
-                                        return id_number
-                            id_custom()
-                            clear_mw()           
-                            lang_value = languagegroup.get()
-                            if lang_value == 1:
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Search by ID...")
-                                add_prod_save_eng()
-                            elif lang_value == 2:
-                                search_entry.delete(0, tk.END)
-                                search_entry.insert(0, "Buscar por ID...")
-                                add_prod_save_esp()
-                            reflesh_inventory()
+                        date_os = datetime.datetime.now()
+                        date_format = date_os.strftime("%d-%m-%Y %I:%M %p")      
+                        if "" in id_upper and brand_upper and model_upper and color_upper and date_format: 
+                            try:
+                                def id_custom():
+                                    generated_ids = set()
+                                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
+                                        for line in file:
+                                            id_number = line.split(",")[0]
+                                            generated_ids.add(id_number)
+                                    while True:
+                                        id_number = random.randint(1000000, 9999999)
+                                        if id_number not in generated_ids:
+                                            generated_ids.add(id_number)
+                                            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "a", newline="") as file:
+                                                writer = csv.writer(file)
+                                                writer.writerow([id_number, brand_upper, model_upper, color_upper, date_format])
+                                                file.seek(0, 2)
+                                            return id_number
+                                id_custom()
+                                clear_mw() 
+                                reflesh_inventory()         
+                                lang_value = languagegroup.get()
+                                if lang_value == 1:
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Search by ID...")
+                                    add_prod_save_eng()
+                                elif lang_value == 2:
+                                    search_entry.delete(0, tk.END)
+                                    search_entry.insert(0, "Buscar por ID...")
+                                    add_prod_save_esp()
+                            except ValueError:
+                                error_wn()
+                                loaddata_error_msg()
+                            except TclError:
+                                error_wn()
+                                loadfile_error_msg()  
                         else:
                             lang_value = languagegroup.get()
                             if lang_value == 1:
@@ -2932,7 +3398,9 @@ def DWI():
                         brand_upper = brand_get.upper()
                         model_upper = model_get.upper()
                         color_upper = color_get.upper()
-                        date_upper = date_get.upper()       
+                        date_upper = date_get.upper()   
+                        info_bf()    
+                        info_af()
                         if "" in id_upper and brand_upper and model_upper and color_upper and date_upper:
                             with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
                                 reader = csv.reader(file)
@@ -2946,40 +3414,67 @@ def DWI():
                                 elif lang_value == 2:
                                     edit_prod_ask_esp()
                             def edit_yes():
-                                basics_msg.withdraw()
-                                basics_btn_yes.place_forget()
-                                basics_btn_no.place_forget() 
-                                for row in data:
-                                    if row[0] == id_upper:
-                                        row[1] = brand_upper
-                                        row[2] = model_upper
-                                        row[3] = color_upper
-                                        row[4] = date_upper
-                                        break 
-                                with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w", newline="") as file:
-                                    writer = csv.writer(file)
-                                    writer.writerows(data)
-                                    file.seek(0, 2)
-                                lang_value = languagegroup.get()
-                                if lang_value == 1:
-                                    search_entry.delete(0, tk.END)
-                                    search_entry.insert(0, "Search by ID...")
-                                    edit_prod_save_eng()
-                                elif lang_value == 2:
-                                    search_entry.delete(0, tk.END)
-                                    search_entry.insert(0, "Buscar por ID...")
-                                    edit_prod_save_esp()
-                                    editbtn.place_forget()
-                                    cancelbtn.place_forget()
-                                clear_mw()
-                                edit_cancel_inventory()
-                                id_entry.delete(0, tk.END)
-                                reflesh_inventory()
+                                try:
+                                    basics_msg.withdraw()
+                                    basics_btn_yes.place_forget()
+                                    basics_btn_no.place_forget()
+                                    info_bf_lb.place_forget()
+                                    info_af_lb.place_forget()
+                                    id_inf.place_forget()
+                                    brand_bf.place_forget()
+                                    model_bf.place_forget()
+                                    color_bf.place_forget()
+                                    date_bf.place_forget()
+                                    brand_af.place_forget()
+                                    model_af.place_forget()
+                                    color_af.place_forget()
+                                    date_af.place_forget()
+                                    for row in data:
+                                        if row[0] == id_upper:
+                                            row[1] = brand_upper
+                                            row[2] = model_upper
+                                            row[3] = color_upper
+                                            row[4] = date_upper
+                                            break 
+                                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w", newline="") as file:
+                                        writer = csv.writer(file)
+                                        writer.writerows(data)
+                                        file.seek(0, 2)
+                                    clear_mw()
+                                    reflesh_inventory()
+                                    edit_cancel_inventory()
+                                    id_entry.delete(0, tk.END)
+                                    lang_value = languagegroup.get()
+                                    if lang_value == 1:
+                                        search_entry.delete(0, tk.END)
+                                        search_entry.insert(0, "Search by ID...")
+                                        edit_prod_save_eng()
+                                    elif lang_value == 2:
+                                        search_entry.delete(0, tk.END)
+                                        search_entry.insert(0, "Buscar por ID...")
+                                        edit_prod_save_esp()
+                                except ValueError:
+                                    error_wn()
+                                    loaddata_error_msg()
+                                except TclError:
+                                    error_wn()
+                                    loadfile_error_msg() 
                             def edit_no():
                                 restore_elements()
                                 basics_msg.withdraw()
                                 basics_btn_yes.place_forget()
                                 basics_btn_no.place_forget()
+                                info_bf_lb.place_forget()
+                                info_af_lb.place_forget()
+                                id_inf.place_forget()
+                                brand_bf.place_forget()
+                                model_bf.place_forget()
+                                color_bf.place_forget()
+                                date_bf.place_forget()
+                                brand_af.place_forget()
+                                model_af.place_forget()
+                                color_af.place_forget()
+                                date_af.place_forget()
                                 basics_msg.grab_release()
                                 basics_msg.transient(None)
                             basics_btn_yes.config(command=edit_yes)
@@ -2991,10 +3486,135 @@ def DWI():
                             elif lang_value == 2:
                                 edit_prod_empty_esp() 
 
+                    def info_bf():
+                        with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
+                                reader = csv.reader(file)
+                                data = list(reader)
+                        ids = set([row[0].upper() for row in data])
+                        if id_entry.get() in ids:
+                            lang_value = languagegroup.get()
+                            if lang_value == 1:
+                                for row in data:
+                                    if row[0] == id_entry.get():
+                                        id_inf.config(text="ID: "+str(row[0]))
+                                        brand_bf.config(text="Brand:\n"+str(row[1]))
+                                        model_bf.config(text="Model:\n"+str(row[2]))
+                                        color_bf.config(text="Color:\n"+str(row[3]))
+                                        date_bf.config(text="Registered Date:\n"+str(row[4]))
+                                        break 
+                            elif lang_value == 2:
+                                for row in data:
+                                    if row[0] == id_entry.get():
+                                        id_inf.config(text="ID: "+str(row[0]))
+                                        brand_bf.config(text="Marca:\n"+str(row[1]))
+                                        model_bf.config(text="Modelo:\n"+str(row[2]))
+                                        color_bf.config(text="Color:\n"+str(row[3]))
+                                        date_bf.config(text="Fecha de Registro:\n"+str(row[4]))
+                                        break 
+                    
+                    def info_af():
+                        with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
+                                reader = csv.reader(file)
+                                data = list(reader)
+                        brand_get = brand_entry.get()
+                        brand_upper = brand_get.upper()
+                        model_get = model_entry.get()
+                        model_upper = model_get.upper()
+                        color_get = color_entry.get()
+                        color_upper = color_get.upper()
+                        date_get = date_entry.get()
+                        date_upper = date_get.upper()
+                        ids = set([row[0].upper() for row in data])
+                        if id_entry.get() in ids:
+                            lang_value = languagegroup.get()
+                            if lang_value == 1:
+                                for row in data:
+                                    if row[0] == id_entry.get():
+                                        theme_value = themegroup.get()
+                                        if row[1] != brand_upper:
+                                            brand_af.config(fg="#C19300")
+                                            brand_af.config(text="Brand:\n"+str(brand_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                brand_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                brand_af.config(fg="black")
+                                            brand_af.config(text="Brand:\n"+str(brand_upper))
+                                        if row[2] != model_upper:
+                                            model_af.config(fg="#C19300")
+                                            model_af.config(text="Model:\n"+str(model_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                model_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                model_af.config(fg="black")
+                                            model_af.config(text="Model:\n"+str(model_upper))
+                                        if row[3] != color_upper:
+                                            color_af.config(fg="#C19300")
+                                            color_af.config(text="Color:\n"+str(color_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                color_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                color_af.config(fg="black")
+                                            color_af.config(text="Color:\n"+str(color_upper))
+                                        if row[4] != date_upper:
+                                            date_af.config(fg="#C19300")
+                                            date_af.config(text="Registered Date:\n"+str(date_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                date_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                date_af.config(fg="black")
+                                            date_af.config(text="Registered Date:\n"+str(date_upper))
+                                        break 
+                            elif lang_value == 2:
+                                for row in data:
+                                    if row[0] == id_entry.get():
+                                        theme_value = themegroup.get()
+                                        if row[1] != brand_upper:
+                                            brand_af.config(fg="#C19300")
+                                            brand_af.config(text="Marca:\n"+str(brand_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                brand_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                brand_af.config(fg="black")
+                                            brand_af.config(text="Marca:\n"+str(brand_upper))
+                                        if row[2] != model_upper:
+                                            model_af.config(fg="#C19300")
+                                            model_af.config(text="Modelo:\n"+str(model_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                model_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                model_af.config(fg="black")
+                                            model_af.config(text="Modelo:\n"+str(model_upper))
+                                        if row[3] != color_upper:
+                                            color_af.config(fg="#C19300")
+                                            color_af.config(text="Color:\n"+str(color_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                color_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                color_af.config(fg="black")
+                                            color_af.config(text="Color:\n"+str(color_upper))
+                                        if row[4] != date_upper:
+                                            date_af.config(fg="#C19300")
+                                            date_af.config(text="Fecha de Registro:\n"+str(date_upper))
+                                        else:
+                                            if theme_value == 1:
+                                                date_af.config(fg="white")
+                                            elif theme_value == 2:
+                                                date_af.config(fg="black")
+                                            date_af.config(text="Fecha de Registro:\n"+str(date_upper))
+                                        break 
+
                     def del_inventory():
                         global del_no
                         id_get = id_entry.get()
                         id_upper = id_get.upper()
+                        info_bf()
                         if "" in id_upper:
                             with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
                                 reader = csv.reader(file)
@@ -3022,28 +3642,47 @@ def DWI():
                                     elif lang_value == 2:
                                         delete_prod_notfound_esp()
                             def del_yes():
-                                basics_msg.withdraw()
-                                basics_btn_yes.place_forget()
-                                basics_btn_no.place_forget() 
-                                for row in data:
-                                    if row[0].upper() == id_upper:
-                                        data.remove(row)
-                                with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w", newline="") as file:
-                                    writer = csv.writer(file)
-                                    writer.writerows(data)
-                                    file.seek(0, 2)
-                                clear_mw()
-                                lang_value = languagegroup.get()
-                                if lang_value == 1:
-                                    search_entry.delete(0, tk.END)
-                                    search_entry.insert(0, "Search by ID...")                            
-                                    delete_prod_del_eng()
-                                elif lang_value == 2:
-                                    search_entry.delete(0, tk.END)
-                                    search_entry.insert(0, "Buscar por ID...")
-                                    delete_prod_del_esp()
-                                reflesh_inventory()
+                                info_bf_lb.place_forget()
+                                id_inf.place_forget()
+                                brand_bf.place_forget()
+                                model_bf.place_forget()
+                                color_bf.place_forget()
+                                date_bf.place_forget()
+                                try:
+                                    basics_msg.withdraw()
+                                    basics_btn_yes.place_forget()
+                                    basics_btn_no.place_forget() 
+                                    for row in data:
+                                        if row[0].upper() == id_upper:
+                                            data.remove(row)
+                                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w", newline="") as file:
+                                        writer = csv.writer(file)
+                                        writer.writerows(data)
+                                        file.seek(0, 2)
+                                    clear_mw()
+                                    reflesh_inventory()
+                                    lang_value = languagegroup.get()
+                                    if lang_value == 1:
+                                        search_entry.delete(0, tk.END)
+                                        search_entry.insert(0, "Search by ID...")                            
+                                        delete_prod_del_eng()
+                                    elif lang_value == 2:
+                                        search_entry.delete(0, tk.END)
+                                        search_entry.insert(0, "Buscar por ID...")
+                                        delete_prod_del_esp()
+                                except ValueError:
+                                    error_wn()
+                                    loaddata_error_msg()
+                                except TclError:
+                                    error_wn()
+                                    loadfile_error_msg() 
                             def del_no():
+                                info_bf_lb.place_forget()
+                                id_inf.place_forget()
+                                brand_bf.place_forget()
+                                model_bf.place_forget()
+                                color_bf.place_forget()
+                                date_bf.place_forget()
                                 restore_elements()
                                 basics_msg.withdraw()
                                 basics_btn_yes.place_forget()
@@ -3054,25 +3693,33 @@ def DWI():
                             basics_btn_no.config(command=del_no)  
                 
                     def showexpotedfolder():
+                        if not os.path.exists(os.path.join(os.path.dirname(__file__), "Exported")):   
+                            os.makedirs(os.path.join(os.path.dirname(__file__), "Exported"))
                         os.startfile(os.path.join(os.path.dirname(__file__), "Exported"))
 
                     def exportfile():
-                        with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
-                            reader = csv.reader(file)
-                            data = list(reader)
-                        with open(os.path.join(os.path.dirname(__file__), 'Exported/Inventory List.txt'), 'w') as export_inventory:
+                        try:
+                            if not os.path.exists(os.path.join(os.path.dirname(__file__), "Exported")):   
+                                os.makedirs(os.path.join(os.path.dirname(__file__), "Exported"))
+                            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
+                                reader = csv.reader(file)
+                                data = list(reader)
+                            with open(os.path.join(os.path.dirname(__file__), 'Exported/Inventory List.txt'), 'w') as export_inventory:
+                                lang_value = languagegroup.get()
+                                if lang_value == 1:
+                                    export_inventory.write('ID            Brand                 Model                                  Color                  Registered Date\n-------------------------------------------------------------------------------------------------------------------------\n')
+                                elif lang_value == 2:
+                                    export_inventory.write('ID            Marca                 Modelo                                 Color                  Fecha de Registro\n-------------------------------------------------------------------------------------------------------------------------\n')
+                                for row in data:
+                                    export_inventory.write('{:<10}    {:<15}       {:<28}           {:<18}     {:<20}\n'.format(row[0], row[1], row[2], row[3], row[4]))
                             lang_value = languagegroup.get()
                             if lang_value == 1:
-                                export_inventory.write('ID            Brand                 Model                                  Color                  Registered Date\n-------------------------------------------------------------------------------------------------------------------------\n')
+                                export_file_msg_eng()
                             elif lang_value == 2:
-                                export_inventory.write('ID            Marca                 Modelo                                 Color                  Fecha de Registro\n-------------------------------------------------------------------------------------------------------------------------\n')
-                            for row in data:
-                                export_inventory.write('{:<10}    {:<15}       {:<28}           {:<18}     {:<20}\n'.format(row[0], row[1], row[2], row[3], row[4]))
-                        lang_value = languagegroup.get()
-                        if lang_value == 1:
-                            export_file_msg_eng()
-                        elif lang_value == 2:
-                            export_file_msg_esp()
+                                export_file_msg_esp()
+                        except FileNotFoundError:
+                            error_wn()
+                            loadfile_error_msg()
 
                     # ========================================================================================================= #
                     dynamic_window.title("Device Warehouse Inventory ("+username+")")
@@ -3109,7 +3756,6 @@ def DWI():
                     brandlb.config(fg="#00A007", state="normal")
                     modellb.config(fg="#00A007", state="normal")
                     colorlb.config(fg="#00A007", state="normal")
-                    datelb.config(fg="#00A007", state="normal")
                     searchlb.config(text="🔍", font="SegoeUIVariable, 15")
                     labels_mw()
                 
@@ -3117,11 +3763,9 @@ def DWI():
                     brand_entry.config(cursor="xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
                     model_entry.config(cursor="xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
                     color_entry.config(cursor="xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
-                    date_entry.config(cursor="xterm", highlightcolor="#00A007", highlightbackground="#00A007", highlightthickness=2)
                     brand_entry.delete(0, tk.END)
                     model_entry.delete(0, tk.END)
                     color_entry.delete(0, tk.END)
-                    date_entry.delete(0, tk.END) 
                     search_entry.bind("<KeyRelease>", lambda event: search_byid())         
                     entrys_mw()
 
@@ -3149,55 +3793,67 @@ def DWI():
                         login_error_eng()
                     elif lang_value == 2:
                         login_error_esp()
-            except Exception as e:
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    fatal_error_eng()
-                elif lang_value == 2:
-                    fatal_error_esp()
-                dynamic_window.mainloop()
+            except NameError:
+                error_wn()
+                corruptprogram_error_msg()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
+            except ValueError:
+                error_wn()
+                loaddata_error_msg()
+            except FileNotFoundError:
+                error_wn()
+                loadfile_error_msg()
 
         # ============================================== LOAD ALL WINDOWS ELEMENTS ============================================== #
         def settings():
-            setting_w_total = dynamic_window.winfo_screenwidth()
-            setting_h_total = dynamic_window.winfo_screenheight()
-            setting_w = 389
-            setting_h = 300
-            setting_width = round(setting_w_total/2-setting_w/2)
-            setting_height = round(setting_h_total/2-setting_h/2-100)
-            settings_window.geometry(str(setting_w)+"x"+str(setting_h)+"+"+str(setting_width)+"+"+str(setting_height))
+            try:
+                setting_w_total = dynamic_window.winfo_screenwidth()
+                setting_h_total = dynamic_window.winfo_screenheight()
+                setting_w = 389
+                setting_h = 300
+                setting_width = round(setting_w_total/2-setting_w/2)
+                setting_height = round(setting_h_total/2-setting_h/2-100)
+                settings_window.geometry(str(setting_w)+"x"+str(setting_h)+"+"+str(setting_width)+"+"+str(setting_height))
 
-            off_elements_msg()
-            settings_window.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/settings.ico"))
-            settings_window.protocol("WM_DELETE_WINDOW", lambda: hide_settings())
-            settings_window.resizable(width=False, height=False)
-            settings_window.grab_set()
-            settings_window.focus_set()
+                off_elements_msg()
+                settings_window.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "Sources/Icons/settings.ico"))
+                settings_window.protocol("WM_DELETE_WINDOW", lambda: hide_settings())
+                settings_window.resizable(width=False, height=False)
+                settings_window.grab_set()
+                settings_window.focus_set()
 
-            themeframe.place(x=70, y=33, width=250, height=75)
-            languageframe.place(x=70, y=145, width=250, height=75)
+                themeframe.place(x=70, y=33, width=250, height=75)
+                languageframe.place(x=70, y=145, width=250, height=75)
 
-            themelb.place(x=85, y=20)
-            languagelb.place(x=85, y=132)
+                themelb.place(x=85, y=20)
+                languagelb.place(x=85, y=132)
 
-            lightthemerb.config(command=change_setting)
-            darkthemerb.config(command=change_setting)
-            eng_langrb.config(command=change_setting)
-            esp_langrb.config(command=change_setting)
+                lightthemerb.config(command=change_setting)
+                darkthemerb.config(command=change_setting)
+                eng_langrb.config(command=change_setting)
+                esp_langrb.config(command=change_setting)
 
-            lightthemerb.place(x=90, y=51)
-            darkthemerb.place(x=205, y=51)
-            eng_langrb.place(x=90, y=170)
-            esp_langrb.place(x=205,y=170)
+                lightthemerb.place(x=90, y=51)
+                darkthemerb.place(x=205, y=51)
+                eng_langrb.place(x=90, y=170)
+                esp_langrb.place(x=205,y=170)
 
-            setting_btn_close.config(command=hide_settings)
-            setting_btn_close.place(x=78, y=250)
+                setting_btn_close.config(command=hide_settings)
+                setting_btn_close.place(x=78, y=250)
 
-            setting_btn_apply.config(state="disabled", cursor="arrow")
-            setting_btn_apply.place(x=210, y=250)
+                setting_btn_apply.config(state="disabled", cursor="arrow")
+                setting_btn_apply.place(x=210, y=250)
 
-            settings_window.transient(dynamic_window)
-            settings_window.deiconify()
+                settings_window.transient(dynamic_window)
+                settings_window.deiconify()
+            except NameError:
+                error_wn()
+                corruptprogram_error_msg()
+            except TclError:
+                error_wn()
+                loadfile_error_msg()
 
         # ============================================== LIGHT/DARK LOGIN WINDOWS THEME ============================================== #
         def loginmenubar_dark():
@@ -3220,12 +3876,14 @@ def DWI():
 
         def loginlabels_light():
             loginprofile_imglb.config(bg="white")
+            welcome_login.config(fg="black", bg="white")
             username_label.config(fg="black", bg="white")
             password_label.config(fg="black", bg="white")
             changeaccountlb.config(bg="white")
 
         def loginlabels_dark():
             loginprofile_imglb.config(bg="black")
+            welcome_login.config(fg="white", bg="black")
             username_label.config(fg="white", bg="black")
             password_label.config(fg="white", bg="black")
             changeaccountlb.config(bg="black")
@@ -3262,7 +3920,7 @@ def DWI():
 
             changeusername_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
             changepassword_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
-            resetaccount_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
+            resetaccount_btn.config(bg="white", fg="#C19300", activeforeground="#C19300", activebackground="#EFEFEF")
             changeaccount_btn_back.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
             changeaccount_btn_close.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
             changeaccount_btn_change.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF", disabledforeground="#999999")
@@ -3284,7 +3942,7 @@ def DWI():
 
             changeusername_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
             changepassword_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
-            resetaccount_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
+            resetaccount_btn.config(bg="black", fg="#C19300", activeforeground="#C19300", activebackground="#111111")
             changeaccount_btn_back.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
             changeaccount_btn_close.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
             changeaccount_btn_change.config(bg="black", fg="white", activeforeground="white", activebackground="#111111", disabledforeground="#777777")
@@ -3296,7 +3954,7 @@ def DWI():
             mainmbar.entryconfigure(0, background="black", foreground="white")
             mainmbar.entryconfigure(1, background="black", foreground="white")
             mainmbar.entryconfigure(2, background="black")
-            mainmbar.entryconfigure(3, background="black", foreground="white")
+            mainmbar.entryconfigure(3, background="black", foreground="#C19300")
 
             aboutmbar_btn.config(background="black", foreground="white", activebackground="#292929", activeforeground="white")
             aboutmbar.entryconfigure(0, background="black", foreground="white")
@@ -3309,7 +3967,7 @@ def DWI():
             mainmbar.entryconfigure(0, background="white", foreground="black")
             mainmbar.entryconfigure(1, background="white", foreground="black")
             mainmbar.entryconfigure(2, background="white")
-            mainmbar.entryconfigure(3, background="white", foreground="black")
+            mainmbar.entryconfigure(3, background="white", foreground="#C19300")
 
             aboutmbar_btn.config(background="white", foreground="black", activebackground="#E7E7E7", activeforeground="black")
             aboutmbar.entryconfigure(0, background="white", foreground="black")
@@ -3379,7 +4037,6 @@ def DWI():
             style_table.map("Vertical.TScrollbar", background=[('active', '#292929')])
             style_table.configure("Vertical.TScrollbar", background="#191919", arrowcolor="white", troughcolor="black", arrowsize=32)
             
-
         def mainrbs_light():
             addrb.config(bg="white", foreground="#009003", activebackground="#F1F1F1", activeforeground="#009003", selectcolor="#E7E7E7")
             editrb.config(bg="white", foreground="#0049DE", activebackground="#F1F1F1", activeforeground="#0049DE", selectcolor="#E7E7E7")
@@ -3426,7 +4083,18 @@ def DWI():
             basics_msg_lb.config(bg="white", fg="black")
             basics_btn_ok.config(bg="white", fg="black", cursor= "hand2", activeforeground="black", activebackground="#EFEFEF")
             basics_btn_yes.config(bg="white", cursor= "hand2", activebackground="#EFEFEF")
-            basics_btn_no.config(bg="white", fg="black", cursor= "hand2", activeforeground="black", activebackground="#EFEFEF")    
+            basics_btn_no.config(bg="white", fg="black", cursor= "hand2", activeforeground="black", activebackground="#EFEFEF")
+            info_bf_lb.config(bg="white", fg="black")
+            info_af_lb.config(bg="white", fg="black")
+            id_inf.config(bg="white")
+            brand_bf.config(bg="white", fg="black")
+            model_bf.config(bg="white", fg="black")
+            color_bf.config(bg="white", fg="black")
+            date_bf.config(bg="white", fg="black")
+            brand_af.config(bg="white", fg="black")
+            model_af.config(bg="white", fg="black")
+            color_af.config(bg="white", fg="black")
+            date_af.config(bg="white", fg="black")
 
         def basics_msg_dark():
             basics_msg.config(bg="black")
@@ -3435,6 +4103,17 @@ def DWI():
             basics_btn_ok.config(bg="black", fg="white", cursor= "hand2", activeforeground="white", activebackground="#111111")
             basics_btn_yes.config(bg="black", cursor= "hand2", activebackground="#111111")
             basics_btn_no.config(bg="black", fg="white", cursor= "hand2", activeforeground="white", activebackground="#111111")
+            info_bf_lb.config(bg="black", fg="white")
+            info_af_lb.config(bg="black", fg="white")
+            id_inf.config(bg="black")
+            brand_bf.config(bg="black", fg="white")
+            model_bf.config(bg="black", fg="white")
+            color_bf.config(bg="black", fg="white")
+            date_bf.config(bg="black", fg="white")
+            brand_af.config(bg="black", fg="white")
+            model_af.config(bg="black", fg="white")
+            color_af.config(bg="black", fg="white")
+            date_af.config(bg="black", fg="white")
 
         # ============================================== LIGHT/DARK ALL WINDOWS THEME ============================================== #
         def settings_light():
@@ -3463,16 +4142,16 @@ def DWI():
             setting_btn_close.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
             setting_btn_apply.config(bg="black", fg="white", activeforeground="white", activebackground="#111111", disabledforeground="#777777")
             
-        # ========== RESTORE DEFAULT SETTINGS (IF THE FILE IS CORRUPT)========== #
+        # ========== RESTORE DEFAULT SETTINGS (IF THE SETTINGS FILE IS CORRUPT)========== #
         with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
             loadsettings = csv.reader(settingfile)
             settingdata = list(loadsettings)
-        languagedata = set([row[0]for row in settingdata])
-        if "language=eng_lang" and "language=esp_lang" in languagedata:
+        settingsdata = set([row[0]for row in settingdata])
+        if "language=eng_lang" and "language=esp_lang" in settingsdata:
             with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
                 loadsettings = csv.reader(settingfile)
                 settingdata = list(loadsettings)
-        elif "theme=dark_theme" and "theme=light_theme" in languagedata:
+        elif "theme=dark_theme" and "theme=light_theme" in settingsdata:
             with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
                 loadsettings = csv.reader(settingfile)
                 settingdata = list(loadsettings)
@@ -3496,16 +4175,17 @@ def DWI():
         load_loginwindow()
 
         lmbar_separator.place(x=0, y=31, width=550, height=1)
-        username_label.place(x=140, y=145)
-        password_label.place(x=140, y=210)
         loginprofile_imglb.place(x=225, y=35)
-        username_entry.place(x=140, y=170, height=30)
-        password_entry.place(x=140, y=235, height=30)
-        loginbtn.place(y=280)
-        infobtn.place(x=507, y=319)
+        welcome_login.place(y=140)
+        username_label.place(x=140, y=185)
+        password_label.place(x=140, y=250)
+        username_entry.place(x=140, y=210, height=30)
+        password_entry.place(x=140, y=275, height=30)
+        loginbtn.place(y=320)
+        infobtn.place(x=507, y=369)
         settingsbtn.place(x=514, y=0)
         
-        changeaccountlb.place(x=6, y=328)
+        changeaccountlb.place(x=6, y=378)
         changeaccountlb.bind("<Enter>", lambda event: changeaccountlb.config(fg="#0083FF"))
         changeaccountlb.bind("<Leave>", lambda event: changeaccountlb.config(fg="#0055FF"))
 
@@ -3533,126 +4213,13 @@ def DWI():
         dynamic_window.mainloop()  # ---- END of the Main Code
 
     # ============================================== EXCEPTION ============================================== #
-    except Exception as e:
-        with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
-            loadsettings = csv.reader(settingfile)
-            settingdata = list(loadsettings)
-        languagedata = set([row[0]for row in settingdata])
-        if "language=eng_lang" and "language=esp_lang" in languagedata:
-            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
-                loadsettings = csv.reader(settingfile)
-                settingdata = list(loadsettings)
-        elif "theme=dark_theme" and "theme=light_theme" in languagedata:
-            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
-                loadsettings = csv.reader(settingfile)
-                settingdata = list(loadsettings)
-        else:
-            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
-                settingfile.write("theme=dark_theme\nlanguage=eng_lang\n")
-            with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
-                loadsettings = csv.reader(settingfile)
-                settingdata = list(loadsettings)
+    except NameError:
+        error_wn()
+        corruptprogram_error_msg()
+    except TclError:
+        error_wn()
+        loadfile_error_msg()
 
-        errorinfo_wm = tk.Toplevel(dynamic_window)
-        e_icons=tk.Label(text="📄 ❎")
-        errorinfo_wm.transient(dynamic_window)
-        errorinfo_wm.withdraw()
-        errorinfo_wm.protocol("WM_DELETE_WINDOW", lambda: error_close())
-        errorinfo_wm.resizable(width=False, height=False)
-        errorinfo_wm.wm_iconbitmap(os.path.join(os.path.dirname(__file__), "main.ico"))
-        errorinfo_wm.grab_set()
-        errorinfo_wm.focus_set()
-        error_close_btn = tk.Button(errorinfo_wm, padx=35, pady=3, width=3)
-        errorimg = tk.PhotoImage()
-        errorimglb = tk.Label(errorinfo_wm, image=errorimg)
-        errorlb = tk.Label(errorinfo_wm)
-        infotxtlb = tk.Label(errorinfo_wm, wraplength=420, cursor="hand2", justify="left")
-        eMenu = Menu(errorinfo_wm, tearoff=False)
-        eMenu.add_command(compound=tk.LEFT)
-        def copy_text():
-            errorinfo_wm.clipboard_clear()
-            errorinfo_wm.clipboard_append(infotxtlb.cget("text"))
-        def e_menu(action):
-            eMenu.entryconfigure(0, command=lambda: copy_text())
-            eMenu.post(action.x_root, action.y_root)
-        infotxtlb.bind("<ButtonRelease-1>", e_menu)
-        infotxtlb.bind("<ButtonRelease-3>", e_menu)
-        def errorwm_place():
-            window_w_total = errorinfo_wm.winfo_screenwidth()
-            window_h_total = errorinfo_wm.winfo_screenheight()
-            window_w = 564
-            window_h = 230
-            error_width = round(window_w_total/2-window_w/2)
-            error_height = round(window_h_total/2-window_h/2-50)
-            errorinfo_wm.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(error_height))
-            errorwm_height = round(window_h_total/2-window_h/2-999999999999999999999999999999999999999)
-            dynamic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(error_width)+"+"+str(errorwm_height))
-        errorwm_place()
-        errorimg.config(file=os.path.join(os.path.dirname(__file__), "error.png"))
-        
-        def error_lang_eng():
-            errorinfo_wm.title("An error has occurred!")
-            eMenu.entryconfigure(0, label="📄  Copy", font="SegoeUIVariable, 12")
-            if type(e) == TclError:
-                errorlb.config(justify="left", text="The Required Files Could Not be Loaded!\n\nError Information:", font="SegoeUIVariable, 12")
-                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
-            elif type(e) == NameError:
-                errorlb.config(justify="left", text="Undefined Variable Names Found!\n\nError Information:", font="SegoeUIVariable, 12")
-                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
-            errorlb.place(x=110, y=25)
-            infotxtlb.place(x=110, y=85)
-            error_close_btn.config(text="❎ Close", font="SegoeUIVariable, 12", cursor="hand2", command=error_close)
-            error_close_btn.place(x=228, y=180)
-            errorimglb.place(x=15, y=15)
-
-        def error_lang_esp():
-            errorinfo_wm.title("Ha ocurrido un Error!")
-            eMenu.entryconfigure(0, label="📄  Copiar", font="SegoeUIVariable, 12")
-            if type(e) == TclError:
-                errorlb.config(justify="left", text="No se han Podido Cargar los Archivos Requeridos!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
-                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
-            elif type(e) == NameError:
-                errorlb.config(justify="left", text="Se han Encontrado Nombres de Variables sin Definir!\n\nInformacion acerca del Error:", font="SegoeUIVariable, 12")
-                infotxtlb.config(text=str(e), font=font.Font(family="Consolas", size=11))
-            errorlb.place(x=110, y=25)
-            infotxtlb.place(x=110, y=85)
-            error_close_btn.config(text="❎ Cerrar", font="SegoeUIVariable, 12", cursor="hand2", command=error_close)
-            error_close_btn.place(x=228, y=180)
-            errorimglb.place(x=15, y=15)
-
-        def error_dark():
-            eMenu.entryconfigure(0, background="black", foreground="white")
-            errorinfo_wm.config(bg="black")
-            errorlb.config(bg="black", fg="white")
-            errorimglb.config(bg="black")
-            infotxtlb.config(background="black", foreground="#FF9E9E")
-            error_close_btn.config(bg="black", fg="white", activeforeground="white", activebackground="#111111")
-            
-        def error_light():
-            eMenu.entryconfigure(0, background="white", foreground="black")
-            errorinfo_wm.config(bg="white")
-            errorlb.config(bg="white", fg="black")
-            errorimglb.config(bg="white")
-            infotxtlb.config(background="white", foreground="#9E0000")
-            error_close_btn.config(bg="white", fg="black", activeforeground="black", activebackground="#EFEFEF")
-
-        def error_close():
-            sys.exit(0)
-        
-        languagedata = set([row[0]for row in settingdata])
-        if "language=eng_lang" in languagedata:
-            error_lang_eng()
-        elif "language=esp_lang" in languagedata:
-            error_lang_esp()
-        themedata = set([row[0]for row in settingdata])
-        if "theme=dark_theme" in themedata:                     
-            error_dark()
-        elif "theme=light_theme" in themedata:
-            error_light()
-
-        errorinfo_wm.deiconify()
-        dynamic_window.mainloop()
-        
 # ============= REQUIREMENTS ============= #
 os_version = int(platform.version().split('.')[2])
 min_req = 14393

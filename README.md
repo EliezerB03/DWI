@@ -2,7 +2,7 @@
 
 **Device Warehouse Inventory**
 
-[![Download](https://img.shields.io/badge/Download%20Latest-v2.3-purple?style=for-the-badge&logo=windows&logoColor=blue)](https://github.com/EliezerB03/DWI/releases/latest)
+[![Download](https://img.shields.io/badge/Download%20Latest-v2.4-purple?style=for-the-badge&logo=windows&logoColor=blue)](https://github.com/EliezerB03/DWI/releases/latest)
 [![LicensePSF2.0](https://img.shields.io/badge/License-PSF%202.0-orange?style=for-the-badge&logo=git&logoColor=white)](https://docs.python.org/3/license.html)
 [![LicenseMIT](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge&logo=git&logoColor=white)](https://opensource.org/license/mit)
 
