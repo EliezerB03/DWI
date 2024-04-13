@@ -1,15 +1,59 @@
 import tkinter as tk
 from tkinter import *
 from tkinter import ttk, filedialog
-import os, sys, csv, re, random, wmi, datetime, darkdetect, shutil, platform, ctypes 
+from ctypes import wintypes
+from cryptography.fernet import Fernet
+import os, sys, csv, re, random, wmi, datetime, darkdetect, shutil, platform, ctypes, cryptography
 
 if os.path.exists(os.path.join(os.path.dirname(__file__), "DWI.exe")):
     process_query = "SELECT Name, ProcessId FROM Win32_Process WHERE Name = 'DWI.exe'"
     processes = wmi.WMI().query(process_query)
     if len(processes) >= 2:
-        sys.exit()
+        sys.exit(0)
 else:
     sys.exit(0)
+
+# ============================================== START PROGRAM EXECUTION ============================================== #
+if not os.path.exists(os.path.join(os.path.dirname(__file__), "settings.dat")):
+    with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+        settingfile.write("")
+if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
+    os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
+if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data/account_data.csv")):
+    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
+        accountfile.write("")
+if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv")):
+    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
+        inventoryfile.write("")
+
+# ============================================== REQUIREMENTS ============================================== #
+os_version = int(platform.version().split('.')[2])
+recom_req = 19042 
+min_req = 14393
+
+display_res = ctypes.windll.user32.GetDesktopWindow()
+res = ctypes.wintypes.RECT()
+ctypes.windll.user32.GetWindowRect(display_res, ctypes.byref(res))
+res_width = res.right - res.left 
+res_height = res.bottom - res.top 
+
+
+# ============================================== LOAD ENCRYPTION SYSTEM ============================================== #
+key = "7JB92Is8xP8UU002V0x3-3mUkVYdsyJAeYMTqkwKGIQ="
+crypt_key = Fernet(key)
+try:
+    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+        account_info = accountfile.read()
+    decrypt_data = crypt_key.decrypt(account_info)
+except cryptography.fernet.InvalidToken:
+    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
+        accountfile.write("")
+    if os_version < recom_req and os_version >= min_req:
+        with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+            settingfile.write("theme=light_theme\nlanguage=eng_lang\nsetup=unfinished\n")
+    else:
+        with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
+            settingfile.write("theme=system_theme\nlanguage=eng_lang\nsetup=unfinished\n")
 
 # ============================================== LOAD DEPENDENCIES ============================================== #
 dynamic_window = tk.Tk() # ----- MAIN WINDOW
@@ -370,7 +414,7 @@ def DWI():
                 else:
                     return False
 
-            global main_menu, tips_menu, about_menu, idlb, brandlb, modellb, colorlb, datelb, inventorylb, searchlb, device_img, device_imglb
+            global main_menu, tips_menu, about_menu, idlb, brandlb, modellb, colorlb, datelb, inventorylb, searchlb, device_img, device_imglb, reflesh_inventory
             global id_entry, brand_entry, model_entry, color_entry, date_entry, search_entry, inventory_table, table_scrollbar, addrb, editrb, deleterb, modes_group
             global addbtn, checkbtn, editbtn, cancelbtn, deletebtn, clearbtn, separator1, separator2, separator3, foundlb, username_logged_lb
             main_menu = Menu(main_mbtn, tearoff=False)
@@ -434,6 +478,24 @@ def DWI():
             deletebtn = ttk.Button(dynamic_window, cursor= "hand2")
             clearbtn = ttk.Button(dynamic_window, cursor= "hand2")
 
+            def reflesh_inventory():
+                try:
+                    inventory_table.delete(*inventory_table.get_children())
+                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r") as refleshfile:
+                        data = refleshfile.readlines()
+                    if len(data) > 10:
+                        table_scrollbar.place(x=885, y=153, height=225, width=17)
+                    else:
+                        table_scrollbar.place_forget()
+                    for row in data:
+                        id, brand, model, color, date = row.strip().split(",")
+                        inventory_table.insert("", "end", values=(id, brand, model, color, date))
+                except (UnicodeDecodeError, ValueError, FileNotFoundError, IndexError):
+                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
+                        inventoryfile.write("")
+                    error_window()
+                    load_csvfile_error_msg()
+
         # ============================================== LANGUAGES ============================================== #
         def eng_lang_login():
             setting_btn_apply.config(command=apply_settings_login)
@@ -479,25 +541,7 @@ def DWI():
             showhide_pass_btn.config(text="👁️")
             settings_esp()
 
-        def eng_lang_mainwindow():
-            def reflesh_inventory():
-                try:
-                    inventory_table.delete(*inventory_table.get_children())
-                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r") as refleshfile:
-                        data = refleshfile.readlines()
-                    if len(data) > 10:
-                        table_scrollbar.place(x=885, y=153, height=222, width=17)
-                    else:
-                        table_scrollbar.place_forget()
-                    for row in data:
-                        id, brand, model, color, date = row.strip().split(",")
-                        inventory_table.insert("", "end", values=(id, brand, model, color, date))
-                except (UnicodeDecodeError, ValueError, FileNotFoundError, IndexError):
-                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
-                        inventoryfile.write("")
-                    error_window()
-                    load_csvfile_error_msg()
-            
+        def eng_lang_mainwindow():            
             dynamic_window.protocol("WM_DELETE_WINDOW", lambda: signout_ask())
             main_mbtn.config(text = "💫  Utilities")
             main_menu.entryconfigure(0, label="📂  Open Data Folder", font=("Segoe UI", 12))		
@@ -517,7 +561,20 @@ def DWI():
             about_menu.entryconfigure(1, label="❗  About the Program", font=("Segoe UI", 12), command=about)
             signout_btn.config(text="🔐  Sign-Out", command=signout_ask)
             signout_btn.place(x=390)
-            username_logged_lb.config(text="Welcome "+username.upper(), font=("Segoe UI", 12, "bold"))
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                account_info = accountfile.read()
+            decrypt_data = crypt_key.decrypt(account_info)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                accountfile.write(decrypt_data)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                accountreader = csv.reader(accountfile, delimiter=",")
+                accountdata = list(accountreader)
+            username_logged_lb.config(text="Welcome "+str(accountdata[0][0].upper()), font=("Segoe UI", 12, "bold"))
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                account_info = accountfile.read()
+            encrypt_data = crypt_key.encrypt(account_info)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                accountfile.write(encrypt_data)
             addrb.config(text="➕\nAdd Mode")
             editrb.config(text="✒️\nEdit Mode")
             deleterb.config(text="➖\nDelete Mode")
@@ -549,25 +606,7 @@ def DWI():
             settings_btn.config(text="🔧", command=settings)
             settings_eng()
 
-        def esp_lang_mainwindow():
-            def reflesh_inventory():
-                try:
-                    inventory_table.delete(*inventory_table.get_children())
-                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r") as refleshfile:
-                        data = refleshfile.readlines()
-                    if len(data) > 10:
-                        table_scrollbar.place(x=885, y=153, height=222, width=17)
-                    else:
-                        table_scrollbar.place_forget()
-                    for row in data:
-                        id, brand, model, color, date = row.strip().split(",")
-                        inventory_table.insert("", "end", values=(id, brand, model, color, date))
-                except (UnicodeDecodeError, ValueError, FileNotFoundError, IndexError):
-                    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
-                        inventoryfile.write("")
-                    error_window()
-                    load_csvfile_error_msg()
-                    
+        def esp_lang_mainwindow():                    
             dynamic_window.protocol("WM_DELETE_WINDOW", lambda: signout_ask())
             main_mbtn.config(text = "💫  Utilidades")
             main_menu.entryconfigure(0, label="📂  Abrir Carpeta Data", font=("Segoe UI", 12))	
@@ -587,7 +626,20 @@ def DWI():
             about_menu.entryconfigure(1, label="❗  Acerca del Programa", font=("Segoe UI", 12), command=about)
             signout_btn.config(text="🔐  Cerrar Sesion", command=signout_ask)
             signout_btn.place(x=390)
-            username_logged_lb.config(text="Bienvenido "+username.upper(), font=("Segoe UI", 12, "bold"))
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                account_info = accountfile.read()
+            decrypt_data = crypt_key.decrypt(account_info)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                accountfile.write(decrypt_data)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                accountreader = csv.reader(accountfile, delimiter=",")
+                accountdata = list(accountreader)
+            username_logged_lb.config(text="Bienvenido "+str(accountdata[0][0].upper()), font=("Segoe UI", 12, "bold"))
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                account_info = accountfile.read()
+            encrypt_data = crypt_key.encrypt(account_info)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                accountfile.write(encrypt_data)
             addrb.config(text="➕\nModo Agregar")
             editrb.config(text="✒️\nModo Editar")
             deleterb.config(text="➖\nModo Eliminar")
@@ -652,7 +704,6 @@ def DWI():
             style_elements.configure("TMenubutton", anchor="w", background="white", foreground="black", font=("Segoe UI", 12), focuscolor="black")
             style_elements.layout('TMenubutton', [('Menubutton.border', {'sticky': 'nswe','children': [('Menubutton.focus', {'sticky': 'nswe','children': [('Menubutton.padding', 
                 {'expand': '1', 'sticky': 'we', 'children': [('Menubutton.label',{'side': 'left', 'sticky': ''})]})]})]})])
-            
             style_elements.map("TButton", background=[('pressed', '#E3E3E3'), ('active', '#DADADA'), ("disabled", "#F6F6F6")], foreground=[("disabled", "#888888")], 
                                 relief=[('pressed', 'groove'), ('!pressed', 'ridge')])
             style_elements.configure("TButton", background="#ECECEC", foreground="black", font=("Segoe UI", 12), focuscolor="black", justify=tk.CENTER, anchor=tk.CENTER)
@@ -679,14 +730,12 @@ def DWI():
             clearbtn.config(style='miscs.TButton')
             changeusername_btn.config(style='miscs.TButton')
             changepassword_btn.config(style='miscs.TButton')
-
             style_elements.map("pass.TButton", background=[('pressed', 'white'), ('active', 'white')], 
                                 foreground=[('pressed', '#737373'), ('active', 'black')], relief=[('pressed', 'flat'), ('!pressed', 'flat')])
             style_elements.configure('pass.TButton', foreground='black', background="white", justify=tk.CENTER, anchor=tk.CENTER)
             showhide_pass_btn.config(style='pass.TButton')
             showhide_actualpass_btn.config(style='pass.TButton')
             showhide_newpass_btn.config(style='pass.TButton')
-
             style_elements.configure('Tip.TButton', justify=tk.CENTER, anchor=tk.CENTER)
             tip1_btn.config(style='Tip.TButton')
             tip2_btn.config(style='Tip.TButton')
@@ -694,7 +743,6 @@ def DWI():
             tip4_btn.config(style='Tip.TButton')
             tip5_btn.config(style='Tip.TButton')
             tip6_btn.config(style='Tip.TButton')
-
             style_elements.map("Toolbutton", background=[('pressed', '#E3E3E3'), ('active', '#DADADA'), ('selected', '#C3C3C3')], 
                                 indicatorcolor=[('selected', 'black')], relief=[('selected', 'groove')])
             style_elements.configure("Toolbutton", background="#ECECEC", foreground="black", font=("Segoe UI", 12), focuscolor="black", indicatorcolor="#999999", 
@@ -763,7 +811,6 @@ def DWI():
             style_elements.configure("TMenubutton", anchor="w", background="#101010", foreground="white", font=("Segoe UI", 12), focuscolor='white')
             style_elements.layout('TMenubutton', [('Menubutton.border', {'sticky': 'nswe','children': [('Menubutton.focus', {'sticky': 'nswe','children': [('Menubutton.padding', 
                 {'expand': '1', 'sticky': 'we', 'children': [('Menubutton.label',{'side': 'left', 'sticky': ''})]})]})]})])
-
             style_elements.map("TButton", background=[('pressed', '#252525'), ('active', '#303030'), ("disabled", "#101010")], foreground=[("disabled", "#777777")], 
                                 relief=[('pressed', 'groove'), ('!pressed', 'ridge')])
             style_elements.configure("TButton", background="#171717", foreground="white", font=("Segoe UI", 12), focuscolor='white', justify=tk.CENTER, anchor=tk.CENTER)
@@ -804,7 +851,6 @@ def DWI():
             tip4_btn.config(style='Tip.TButton')
             tip5_btn.config(style='Tip.TButton')
             tip6_btn.config(style='Tip.TButton')
-
             style_elements.map("Toolbutton", background=[('pressed', '#252525'), ('active', '#303030'), ('selected', '#252525')], 
                                 indicatorcolor=[('selected', '#707070')], relief=[('selected', 'groove')])
             style_elements.configure("Toolbutton", background="#171717", foreground="white", font=("Segoe UI", 12), focuscolor="white", indicatorcolor="white", 
@@ -886,15 +932,17 @@ def DWI():
         basic_btn_ok = ttk.Button(basic_window, text="✔️  OK", cursor= "hand2")  
         info_bf_lb = tk.Label(basic_window)
         info_af_lb = tk.Label(basic_window)
-        id_inf = tk.Label(basic_window, font=("Segoe UI", 11, "bold"))
-        brand_bf = tk.Label(basic_window, font=("Segoe UI", 11))
-        model_bf = tk.Label(basic_window, font=("Segoe UI", 11))
-        color_bf = tk.Label(basic_window, font=("Segoe UI", 11))
-        date_bf = tk.Label(basic_window, font=("Segoe UI", 11))
-        brand_af = tk.Label(basic_window, font=("Segoe UI", 11))
-        model_af = tk.Label(basic_window, font=("Segoe UI", 11))
-        color_af = tk.Label(basic_window, font=("Segoe UI", 11))
-        date_af = tk.Label(basic_window, font=("Segoe UI", 11))   
+        id_inf = tk.Label(basic_window, font=("Segoe UI", 11, "bold"), anchor="w", justify="left")
+        brand_bf = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        model_bf = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        color_bf = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        date_bf = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        brand_af = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        model_af = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        color_af = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left")
+        date_af = tk.Label(basic_window, font=("Segoe UI", 11), anchor="w", justify="left") 
+        infobf_frame = tk.Frame(basic_window, height=1, bd=0)
+        infoaf_frame = tk.Frame(basic_window, height=1, bd=0)
         show_csvfilelb = tk.Label(basic_window, cursor='hand2', font=("Segoe UI", 12))     
 
         # ========== LOAD SETTINGS WINDOW ========== #
@@ -975,14 +1023,12 @@ def DWI():
         tips_imglb = tk.Label(tips_window, image=basic_img)
         tips_lb1 = tk.Label(tips_window)
         tips_lb2 = tk.Label(tips_window)
-
         tip1_btn = ttk.Button(tips_window)
         tip2_btn = ttk.Button(tips_window)
         tip3_btn = ttk.Button(tips_window)
         tip4_btn = ttk.Button(tips_window)
         tip5_btn = ttk.Button(tips_window)
         tip6_btn = ttk.Button(tips_window)
-
         tip_btn_close = ttk.Button(tips_window)
 
         # ============================================== LOAD BASIC FUNCTIONS IN MEMORY ============================================== #
@@ -1294,172 +1340,214 @@ def DWI():
             tip_btn_close.place(x=151, y=360, width=110, height=37)
 
         def reset_account():
-            if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
-                os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
-                accountfile.write("admin,12345678\n")
-            lang_value = languagegroup.get()
-            if lang_value == 1:
-                changeaccount_btn_reset.config(text="✔️ Restored!", cursor="arrow", state="disabled")
-                changeaccount_window.focus()
-            elif lang_value == 2:
-                changeaccount_btn_reset.config(text="✔️ Restablecido!", cursor="arrow", state="disabled")
-                changeaccount_window.focus()
+            try:
+                if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
+                    os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
+                    accountfile.write("admin,12345678\n")
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                encrypt_data = crypt_key.encrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(encrypt_data)
+                lang_value = languagegroup.get()
+                if lang_value == 1:
+                    changeaccount_btn_reset.config(text="✔️ Restored!", cursor="arrow", state="disabled")
+                    changeaccount_window.focus()
+                elif lang_value == 2:
+                    changeaccount_btn_reset.config(text="✔️ Restablecido!", cursor="arrow", state="disabled")
+                    changeaccount_window.focus()
+            except cryptography.fernet.InvalidToken:
+                error_window()
+                datafile_error_msg()
 
         def enable_change_userdata():
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
-                accountreader = csv.reader(accountfile, delimiter=",")
-                accountdata = list(accountreader)
-            if actual_username.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check1_lb.place(x=75, y=117)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif not accountdata[0][0] == actual_username.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Username Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Nombre de Usuario Incorrecto.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check1_lb.place(x=75, y=117)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif accountdata[0][0] == actual_username.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Username Verified.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Nombre de Usuario Verificado.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check1_lb.place(x=75, y=117)
-            if new_username.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check3_lb.place(x=75, y=207)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif len(new_username.get()) < 4:
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Must be at Least 4 Letters/Numbers.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Debe tener al menos 4 Letras/Numeros.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check3_lb.place(x=75, y=207)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif len(new_username.get()) >= 4:
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Valid Username.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Nombre de usuario Valido.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check3_lb.place(x=75, y=207)
-            if actual_password.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check2_lb.place(x=75, y=295)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif not accountdata[0][1] == actual_password.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Password Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Contreseña Incorrecta.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check2_lb.place(x=75, y=295)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow")
-            elif accountdata[0][1] == actual_password.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Password Verified.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Contreseña Verificada.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check2_lb.place(x=75, y=295)
-            if accountdata[0][0] == actual_username.get() and accountdata[0][1] == actual_password.get() and len(new_username.get()) >= 4:
-                changeaccount_btn_change.config(state="normal", cursor="hand2", command=change_userdata)
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                decrypt_data = crypt_key.decrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(decrypt_data)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                    accountreader = csv.reader(accountfile, delimiter=",")
+                    accountdata = list(accountreader)
+                if actual_username.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif not accountdata[0][0] == actual_username.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Username Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Nombre de Usuario Incorrecto.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif accountdata[0][0] == actual_username.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Username Verified.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Nombre de Usuario Verificado.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                if new_username.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check3_lb.place(x=75, y=207)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif len(new_username.get()) < 4:
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Must be at Least 4 Letters/Numbers.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Debe tener al menos 4 Letras/Numeros.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check3_lb.place(x=75, y=207)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif len(new_username.get()) >= 4:
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Valid Username.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Nombre de usuario Valido.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check3_lb.place(x=75, y=207)
+                if actual_password.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check2_lb.place(x=75, y=295)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif not accountdata[0][1] == actual_password.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Password Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Contreseña Incorrecta.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check2_lb.place(x=75, y=295)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow")
+                elif accountdata[0][1] == actual_password.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Password Verified.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Contreseña Verificada.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check2_lb.place(x=75, y=295)
+                if accountdata[0][0] == actual_username.get() and accountdata[0][1] == actual_password.get() and len(new_username.get()) >= 4:
+                    changeaccount_btn_change.config(state="normal", cursor="hand2", command=change_userdata)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                encrypt_data = crypt_key.encrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(encrypt_data)
+            except cryptography.fernet.InvalidToken:
+                error_window()
+                datafile_error_msg()
 
         def enable_change_password():
-            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
-                accountreader = csv.reader(accountfile, delimiter=",")
-                accountdata = list(accountreader)
-            if actual_username.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check1_lb.place(x=75, y=117)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif not accountdata[0][0] == actual_username.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Username Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Nombre de Usuario Incorrecto.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check1_lb.place(x=75, y=117)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif accountdata[0][0] == actual_username.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check1_lb.config(text="Username Verified.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check1_lb.config(text="Nombre de Usuario Verificado.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check1_lb.place(x=75, y=117)
-            if actual_password.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check2_lb.place(x=75, y=207)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif not accountdata[0][1] == actual_password.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Password Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Contreseña Incorrecta.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check2_lb.place(x=75, y=207)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow")
-            elif accountdata[0][1] == actual_password.get():
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check2_lb.config(text="Password Verified.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check2_lb.config(text="Contreseña Verificada.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check2_lb.place(x=75, y=207)
-            if new_password.get() == "":
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check3_lb.place(x=75, y=295)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif len(new_password.get()) < 8:
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Security Level: Weak.", font=("Segoe UI", 12), fg="#CE0000")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Nivel de Seguridad: Debil.", font=("Segoe UI", 12), fg="#CE0000")
-                changeaccount_check3_lb.place(x=75, y=295)
-                changeaccount_btn_change.config(state="disabled", cursor="arrow") 
-            elif len(new_password.get()) >= 8:
-                lang_value = languagegroup.get()
-                if lang_value == 1:
-                    changeaccount_check3_lb.config(text="Security Level: Safe.", font=("Segoe UI", 12), fg="#009E00")
-                elif lang_value == 2:
-                    changeaccount_check3_lb.config(text="Nivel de Seguridad: Segura.", font=("Segoe UI", 12), fg="#009E00")
-                changeaccount_check3_lb.place(x=75, y=295)
-            if accountdata[0][0] == actual_username.get() and accountdata[0][1] == actual_password.get() and len(new_password.get()) >= 8:
-                changeaccount_btn_change.config(state="normal", cursor="hand2", command=change_passworddata)
+            try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                decrypt_data = crypt_key.decrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(decrypt_data)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
+                    accountreader = csv.reader(accountfile, delimiter=",")
+                    accountdata = list(accountreader)
+                if actual_username.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif not accountdata[0][0] == actual_username.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Username Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Nombre de Usuario Incorrecto.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif accountdata[0][0] == actual_username.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check1_lb.config(text="Username Verified.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check1_lb.config(text="Nombre de Usuario Verificado.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check1_lb.place(x=75, y=117)
+                if actual_password.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check2_lb.place(x=75, y=207)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif not accountdata[0][1] == actual_password.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Password Incorrect.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Contreseña Incorrecta.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check2_lb.place(x=75, y=207)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow")
+                elif accountdata[0][1] == actual_password.get():
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check2_lb.config(text="Password Verified.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check2_lb.config(text="Contreseña Verificada.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check2_lb.place(x=75, y=207)
+                if new_password.get() == "":
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Empty Text Field.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Campo de Texto Vacio.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check3_lb.place(x=75, y=295)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif len(new_password.get()) < 8:
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Security Level: Weak.", font=("Segoe UI", 12), fg="#CE0000")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Nivel de Seguridad: Debil.", font=("Segoe UI", 12), fg="#CE0000")
+                    changeaccount_check3_lb.place(x=75, y=295)
+                    changeaccount_btn_change.config(state="disabled", cursor="arrow") 
+                elif len(new_password.get()) >= 8:
+                    lang_value = languagegroup.get()
+                    if lang_value == 1:
+                        changeaccount_check3_lb.config(text="Security Level: Safe.", font=("Segoe UI", 12), fg="#009E00")
+                    elif lang_value == 2:
+                        changeaccount_check3_lb.config(text="Nivel de Seguridad: Segura.", font=("Segoe UI", 12), fg="#009E00")
+                    changeaccount_check3_lb.place(x=75, y=295)
+                if accountdata[0][0] == actual_username.get() and accountdata[0][1] == actual_password.get() and len(new_password.get()) >= 8:
+                    changeaccount_btn_change.config(state="normal", cursor="hand2", command=change_passworddata)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                encrypt_data = crypt_key.encrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(encrypt_data)
+            except cryptography.fernet.InvalidToken:
+                error_window()
+                datafile_error_msg()
 
         def change_userdata():
             try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                decrypt_data = crypt_key.decrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(decrypt_data)
                 with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
                     accountreader = csv.reader(accountfile, delimiter=",")
                     accountdata = list(accountreader)
@@ -1478,16 +1566,26 @@ def DWI():
                     if device_imglb.winfo_ismapped():
                         lang_value = languagegroup.get()
                         if lang_value == 1:
-                            username_logged_lb.config(text="Welcome "+newusername.upper(), font=("Segoe UI", 12, "bold"))
+                            username_logged_lb.config(text="Welcome "+str(accountdata[0][0].upper()), font=("Segoe UI", 12, "bold"))
                         elif lang_value == 2:
-                            username_logged_lb.config(text="Bienvenido "+newusername.upper(), font=("Segoe UI", 12, "bold"))
+                            username_logged_lb.config(text="Bienvenido "+str(accountdata[0][0].upper()), font=("Segoe UI", 12, "bold"))
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                        account_info = accountfile.read()
+                    encrypt_data = crypt_key.encrypt(account_info)
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                        accountfile.write(encrypt_data)
                     changeusername_correct_msg()
-            except FileNotFoundError:
+            except (FileNotFoundError, cryptography.fernet.InvalidToken):
                 error_window()
                 datafile_error_msg()
 
         def change_passworddata():
             try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                decrypt_data = crypt_key.decrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(decrypt_data)
                 with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
                     accountreader = csv.reader(accountfile, delimiter=",")
                     accountdata = list(accountreader)
@@ -1501,12 +1599,17 @@ def DWI():
                         writer = csv.writer(file)
                         writer.writerows(accountdata)
                         file.seek(0, 2)
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                        account_info = accountfile.read()
+                    encrypt_data = crypt_key.encrypt(account_info)
+                    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                        accountfile.write(encrypt_data)
                     changeaccount_back()
                     changepassword_correct_msg()
-            except FileNotFoundError:
+            except (FileNotFoundError, cryptography.fernet.InvalidToken):
                 error_window()
                 datafile_error_msg()
-
+           
         # ============================================== LOAD WINDOW FUNCTION IN MEMORY ============================================== #
         # ========== SETTINGS WINDOW ========== #
         def settings():
@@ -1669,7 +1772,6 @@ def DWI():
                 changeaccount_lb2.config(text="Nombre de Usuario Actual:", font=("Segoe UI", 12))
                 changeaccount_lb3.config(text="Nuevo Nombre de Usuario:", font=("Segoe UI", 12))
                 changeaccount_lb4.config(text="Contraseña para Confirmar:", font=("Segoe UI", 12))
-            
             actual_username.place(x=75, y=92, height=30)
             new_username.place(x=75, y=181, height=30)
             actual_password.place(x=75, y=269, height=30)
@@ -1726,7 +1828,6 @@ def DWI():
                 changeaccount_lb2.config(text="Nombre de Usuario Actual:", font=("Segoe UI", 12))
                 changeaccount_lb3.config(text="Contraseña Actual:", font=("Segoe UI", 12))
                 changeaccount_lb4.config(text="Nueva Contraseña:", font=("Segoe UI", 12))
-
             actual_username.place(x=75, y=92, height=30)
             actual_password.place(x=75, y=181, height=30)
             new_password.place(x=75, y=269, height=30)
@@ -1766,7 +1867,6 @@ def DWI():
                 changeaccount_btn_reset.config(text="♻️ Restablecer a Predeterminado", cursor="hand2", state="normal", command=reset_account) 
                 changeaccount_lb3.config(justify="left", text="*Puedes volver a cambiar el Nombre de \nusuario/Contraseña luego de restablecerlo.", font=("Segoe UI", 12))
                 changeaccount_btn_reset.place(x=78, y=204, height=40, width=260)
-            
             changeaccount_lb1.place(x=55, y=31)
             changeaccount_lb3.place(x=45, y=275)
             changeaccount_imglb.place(x=45, y=85)
@@ -1848,7 +1948,6 @@ def DWI():
                 tips_lb_title.config(text="💡 Cual es el Proposito de este Programa?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Su propósito es ofrecer\nopciones para administrar\nfácilmente la información de los\ndispositivo desde un inventario.\n\nPara mas informacion, consulta\nlas demas opciones de Consejos.", font=("Segoe UI", 12))
                 tips_lb1.place(x=130, y=125)
-
             tips_lb_title.place(x=55, y=29)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -1876,7 +1975,6 @@ def DWI():
                 tips_lb_title.config(text="❓ Como Iniciar Sesion?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Para empezar, escriba su\nNombre de Usuario y Contraseña\nsi los datos son correcto la\naplicacion iniciara, de lo contrario\nrecibiras un mensaje de error.\n\nSi aun tienes problemas para\niniciar sesion, puedes\nrestablecer la cuenta desde los\nAjustes de Cuenta, si aun asi tienes\nproblemas para iniciar sesion\nentonces, contacta al Desarrollador.", font=("Segoe UI", 12))
                 tips_lb1.place(x=117, y=65) 
-
             tips_lb_title.place(x=55, y=31)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -1904,7 +2002,6 @@ def DWI():
                 tips_lb_title.config(text="❓ Como usar Este Programa?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Para comenzar, seleccione una\nde las opciones disponibles en\nla parte superior para abrir cada\nopcion, entre las disponibles\n estan: ➕ Modo Agregar,\n✒️ Modo Editar y\n➖ Modo Eliminar.\n\nSi tiene problemas\ncon las opciones,\nnotifique al Desarrollador.", font=("Segoe UI", 12))
                 tips_lb1.place(x=127, y=75) 
-
             tips_lb_title.place(x=55, y=31)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -1932,7 +2029,6 @@ def DWI():
                 tips_lb_title.config(text="➕ Como usar el Modo Agregar?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Para empezar, llena los\ncampos de texto y presiona\nel Boton [➕ Agregar ],\nal presionar el boton, los\ndatos introducidos se guardaran\nen el inventario, con un ID Unico.", font=("Segoe UI", 12))
                 tips_lb1.place(x=133, y=125) 
-
             tips_lb_title.place(x=55, y=31)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -1960,7 +2056,6 @@ def DWI():
                 tips_lb_title.config(text="✒️ Como usar el Modo Editar?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Para empezar, escribe el ID,\npresiona el Boton [🔎 Comprobar ],\nal presionar el boton si el ID\nes correcto se habilitaran los\ndemas campos para editar, elige\nel/los campos de texto a editar\ny presiona el Boton [✒️ Editar ].\n\nNota: una vez hecho los\ncambios no se pueden deshacer.", font=("Segoe UI", 12))
                 tips_lb1.place(x=119, y=85) 
-
             tips_lb_title.place(x=55, y=31)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -1988,7 +2083,6 @@ def DWI():
                 tips_lb_title.config(text="➖ Como usar el Modo Eliminar?", font=("Segoe UI", 12))
                 tips_lb1.config(justify="center", text="Para empezar, escribe el\nID  y presiona el\nBoton [➖ Eliminar ], si\nel ID es correcto te aparecera\nun mensaje para confirmar,\nPresiona [✔️ Yes] para eliminar.\n\nNota: una vez hecho los\ncambios no se pueden deshacer.", font=("Segoe UI", 12))
                 tips_lb1.place(x=128, y=95) 
-
             tips_lb_title.place(x=55, y=31)
             tips_imglb.place(x=45, y=145)
             tips_btn_back.config(text="⏪", cursor="hand2", command=tips_back) 
@@ -2051,7 +2145,6 @@ def DWI():
                     basic_window.title("Cambiar Contraseña") 
                     basic_lb1.config(justify="center", text="Tu Contraseña se ha CAMBIADO!", font=("Segoe UI", 12)) 
                     basic_btn_ok.place(x=152, y=125, width=80, height=37)
-
                 window_h = 175
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
@@ -2080,22 +2173,21 @@ def DWI():
                 window_h_total = dynamic_window.winfo_screenheight()
                 lang_value = languagegroup.get()
                 if lang_value == 1:
-                    window_w = 445
-                    window_h = 650
+                    window_w = 405
+                    window_h = 465
                     basic_window.title("Changelog in this Version")
-                    basic_imglb.place(x=153, y=5)
-                    basic_lb1.config(justify="left", text="=============  CHANGELOG  =============\n\n   <<<<<        VERSION 3.0 (05-APR-2024)        >>>>>\n\n- Improved and Revamped UI and Icons in Several Aspects.\n- Improved Light/Dark Theme.\n- Updated Font in the UI.\n- Added 'System Theme' Option in Settings.\n- Added a Welcome/Setup Screen to The Program.\n- Added 'Tips' (All Questions/FAQs are There).\n- Improved 'Account Settings' Window.\n- Added Import/Export Inventory in CSV File.\n- Deleted 'About the Program' Button in Login Window.\n- 'About the Program' Information has been Updated.\n- Improved Language Translations.\n- Various Improvements and Optimizations.\n- Bugs Fixes.\n\n                          Developed By Eliezer Brito\n                                 © Elie-Dev (2024)\n                                 All rights reserved", font=("Segoe UI", 12))
+                    basic_imglb.place(x=133, y=5)
+                    basic_lb1.config(justify="left", text="============ CHANGELOG ============\n\n  <<<<<    VERSION 3.1 (13-APR-2024)    >>>>>\n\n- Added Encryption to Account Information.\n- Minor UI Tweaks.\n- Minor Optimizations.\n- Minor Bugs Fixes.\n\n                      Developed By Eliezer Brito\n                             © Elie-Dev (2024)\n                             All rights reserved", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)
-                    basic_btn_ok.place(x=178, y=600, width=80, height=37)
+                    basic_btn_ok.place(x=158, y=415, width=80, height=37)
                 elif lang_value == 2:
-                    window_w = 605 
-                    window_h = 650
+                    window_w = 455
+                    window_h = 465
                     basic_window.title("Registro de Cambios en esta Version")
-                    basic_imglb.place(x=234, y=5)
-                    basic_lb1.config(justify="left", text="==================  Registro de Cambios  ==================\n\n   <<<<<                            VERSION 3.0 (05-ABR-2024)                            >>>>>\n\n- Se ha Mejorado y Renovado la Interfaz de Usuario e Iconos en Varios Aspectos.\n- Se Actualizo la Fuente en toda la Interfaz de Usuario.\n- Se Mejoro el Tema Claro/Oscuro.\n- Se Agrego la Opcion 'Tema del Sistema' en Configuracion.\n- Se Agrego una Pantalla de Bienvenida/Configuracion al Programa.\n- Se Agrego 'Consejos' (Todas las Preguntas/Preguntas Frecuentes estan Ahi).\n- Se Mejoro la Ventana de 'Configuracion de la Cuenta'.\n- Se Agrego la Importacion/Exportacion en Archivo CSV.\n- Se Elimino el Boton 'Acerca del Programa' en la Ventana de Inicio de Sesion.\n- Se Actualizo la Informacion de 'Acerca de'.\n- Se Mejoro la Traduccion en los Idiomas.\n- Varias Mejoras y Optimizaciones.\n- Correciones de Errores.\n\n                                            Desarrollado por Eliezer Brito\n                                                      © Elie-Dev (2024)\n                                          Todos los Derechos Reservados", font=("Segoe UI", 12))
+                    basic_imglb.place(x=159, y=5)
+                    basic_lb1.config(justify="left", text="=========== REGISTRO DE CAMBIOS ===========\n\n  <<<<<            VERSION 3.1 (13-ABR-2024)            >>>>>\n\n- Se Agrego Cifrado para la Informacion de la Cuenta.\n- Ajustes Menores en la IU.\n- Optimizaciones Menores.\n- Errores Menores Corregidos.\n\n                          Desarrollado por Eliezer Brito\n                                   © Elie-Dev (2024)\n                        Todos los Derechos Reservados", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)
-                    basic_btn_ok.place(x=255, y=600, width=80, height=37)
-
+                    basic_btn_ok.place(x=180, y=415, width=80, height=37)
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2124,7 +2216,7 @@ def DWI():
                     window_h = 420
                     basic_window.title("About the Program")
                     basic_imglb.place(x=110, y=5)
-                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.0\n\nA Program that Facilitates the Management\nof Inventory Device Information\nfrom a Local Database.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2024)\nAll rights reserved", font=("Segoe UI", 12))
+                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.1\n\nA Program that Facilitates the Management\nof Inventory Device Information\nfrom a Local Database.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2024)\nAll rights reserved", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)                        
                     basic_btn_ok.place(x=130, y=370, width=80, height=37)
                 elif lang_value == 2:
@@ -2132,10 +2224,9 @@ def DWI():
                     window_h = 420
                     basic_window.title("Acerca del Programa")
                     basic_imglb.place(x=119, y=5)
-                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.0\n\nUn Programa que Facilita el\nManejo de informacion de los Dispositivos\ndel Inventario desde una Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n© Elie-Dev (2024)\nTodos los Derechos Reservados", font=("Segoe UI", 12))
+                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.1\n\nUn Programa que Facilita el\nManejo de informacion de los Dispositivos\ndel Inventario desde una Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n© Elie-Dev (2024)\nTodos los Derechos Reservados", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)
                     basic_btn_ok.place(x=137, y=370, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2175,7 +2266,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Para empezar, escriba su\nNombre de Usuario y Contraseña si los\ndatos son correcto la aplicacion iniciara,\nde lo contrario recibiras un mensaje de error.\n\nPara mas informacion, consulte Consejos.", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=20) 
                     basic_btn_ok.place(x=195, y=165, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))           
@@ -2215,7 +2305,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Tu Cuenta es Incorrecta o Invalida!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=152, y=125, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2255,7 +2344,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Para comenzar, seleccione una\nde las opciones disponibles en\nla parte superior para abrir cada opcion.\n\nPara mas informacion, consulte Consejos.", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=20)
                     basic_btn_ok.place(x=187, y=150, width=80, height=37)
-                
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2295,7 +2383,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Para empezar, llena los\ncampos de texto y presiona\nel Boton [➕ Agregar ] y presiona el boton.\n\nPara mas informacion, consulte Consejos.", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=20)
                     basic_btn_ok.place(x=180, y=150, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2335,7 +2422,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Para empezar, escribe el ID,\npresiona el Boton [🔎 Comprobar ],\nal presionar el boton si el ID\nes correcto se habilitaran los\ndemas campos para editar.\n\nPara mas informacion, consulte Consejos.", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=20)
                     basic_btn_ok.place(x=177, y=190, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2375,7 +2461,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Para empezar, escribe el\nID  y presiona el\nBoton [➖ Eliminar ], si\nel ID es correcto te aparecera\nun mensaje para confirmar.\n\nPara mas informacion, consulte Consejos.", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=20)
                     basic_btn_ok.place(x=177, y=190, width=80, height=37)
-                
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2415,7 +2500,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Tu Producto se ha AGREGADO al Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=188, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2455,7 +2539,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=202, y=115, width=80, height=37)
-                
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2495,7 +2578,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Tu Producto se ha EDITADO en el Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=188, y=115, width=80, height=37)
-                
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2535,7 +2617,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Este ID no Existe!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=115, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2575,7 +2656,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=210, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2607,18 +2687,20 @@ def DWI():
                     basic_lb1.config(justify="center", text="Are you sure you want to EDIT it from inventory?\nThis action is IRREVERSIBLE!", font=("Segoe UI", 12))
                     basic_lb1.place(x=270, y=15) 
                     info_bf_lb.config(justify="center", text="Before:", font=("Segoe UI", 12, "bold"))
-                    info_bf_lb.place(x=120, y=70)
-                    id_inf.place(x=120, y=250)
-                    brand_bf.place(x=120, y=95)
-                    model_bf.place(x=310, y=95)
-                    color_bf.place(x=555, y=95)
-                    date_bf.place(x=720, y=95)
+                    info_bf_lb.place(x=115, y=70)
+                    id_inf.place(x=115, y=250)
+                    brand_bf.place(x=115, y=95, width=192)
+                    model_bf.place(x=305, y=95, width=247)
+                    color_bf.place(x=550, y=95, width=167)
+                    date_bf.place(x=715, y=95, width=160)
+                    infobf_frame.place(x=115, y=120, width=760, height=2)
                     info_af_lb.config(justify="center", text="After:", font=("Segoe UI", 12, "bold"))
-                    info_af_lb.place(x=120, y=150)
-                    brand_af.place(x=120, y=175)
-                    model_af.place(x=310, y=175)
-                    color_af.place(x=555, y=175)
-                    date_af.place(x=720, y=175)
+                    info_af_lb.place(x=115, y=150)
+                    brand_af.place(x=115, y=175, width=192)
+                    model_af.place(x=305, y=175, width=247)
+                    color_af.place(x=550, y=175, width=167)
+                    date_af.place(x=715, y=175, width=160)
+                    infoaf_frame.place(x=115, y=200, width=760, height=2)
                     style_elements.configure("yesedit.TButton", foreground="#0078FF", focuscolor='#0078FF')
                     basic_btn_yes.config(text="✔️  Yes", style="yesedit.TButton")
                     basic_btn_yes.place(x=352, y=240, width=80, height=37)
@@ -2629,25 +2711,26 @@ def DWI():
                     basic_imglb.place(x=15, y=90) 
                     basic_lb1.config(justify="center", text="Estas Seguro que quieres EDITARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font=("Segoe UI", 12))
                     basic_lb1.place(x=255, y=15) 
-                    info_bf_lb.config(justify="center", text="Antes:", font=("Segoe UI", 12, "bold"))
-                    info_bf_lb.place(x=120, y=70)
-                    id_inf.place(x=120, y=250)
-                    brand_bf.place(x=120, y=95)
-                    model_bf.place(x=310, y=95)
-                    color_bf.place(x=555, y=95)
-                    date_bf.place(x=720, y=95)
-                    info_af_lb.config(justify="center", text="Despues:", font=("Segoe UI", 12, "bold"))
-                    info_af_lb.place(x=120, y=150)
-                    brand_af.place(x=120, y=175)
-                    model_af.place(x=310, y=175)
-                    color_af.place(x=555, y=175)
-                    date_af.place(x=720, y=175)
+                    info_bf_lb.config(justify="center", text="Despues:", font=("Segoe UI", 12, "bold"))
+                    info_bf_lb.place(x=115, y=70)
+                    id_inf.place(x=115, y=250)
+                    brand_bf.place(x=115, y=95, width=192)
+                    model_bf.place(x=305, y=95, width=247)
+                    color_bf.place(x=550, y=95, width=167)
+                    date_bf.place(x=715, y=95, width=160)
+                    infobf_frame.place(x=115, y=120, width=760, height=2)
+                    info_af_lb.config(justify="center", text="Antes:", font=("Segoe UI", 12, "bold"))
+                    info_af_lb.place(x=115, y=150)
+                    brand_af.place(x=115, y=175, width=192)
+                    model_af.place(x=305, y=175, width=247)
+                    color_af.place(x=550, y=175, width=167)
+                    date_af.place(x=715, y=175, width=160)
+                    infoaf_frame.place(x=115, y=200, width=760, height=2)
                     style_elements.configure("yesedit.TButton", foreground="#0078FF", focuscolor='#0078FF')
                     basic_btn_yes.config(text="✔️  Si", style="yesedit.TButton")
                     basic_btn_yes.place(x=352, y=240, width=80, height=37)
                     basic_btn_no.config(text="❌  No")
                     basic_btn_no.place(x=447, y=240, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2687,7 +2770,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Tu Profucto ha sido ELIMINADO del Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=190, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2727,7 +2809,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="Este ID no Existe!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=115, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2767,7 +2848,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="No Puedes dejar VACIOS los Campos de Texto!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=56)
                     basic_btn_ok.place(x=202, y=115, width=80, height=37)
-                
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2799,12 +2879,13 @@ def DWI():
                     basic_lb1.config(justify="center", text="Are you sure you want to DELETE it from inventory?\nThis action is IRREVERSIBLE!", font=("Segoe UI", 12))
                     basic_lb1.place(x=270, y=15) 
                     info_bf_lb.config(justify="center", text="Info:", font=("Segoe UI", 12, "bold"))
-                    info_bf_lb.place(x=120, y=70)
-                    id_inf.place(x=120, y=170)
-                    brand_bf.place(x=120, y=95)
-                    model_bf.place(x=310, y=95)
-                    color_bf.place(x=555, y=95)
-                    date_bf.place(x=720, y=95)
+                    info_bf_lb.place(x=115, y=70)
+                    id_inf.place(x=115, y=170)
+                    brand_bf.place(x=115, y=95, width=192)
+                    model_bf.place(x=305, y=95, width=247)
+                    color_bf.place(x=550, y=95, width=167)
+                    date_bf.place(x=715, y=95, width=160)
+                    infobf_frame.place(x=115, y=120, width=760, height=2)
                     style_elements.configure("yesdel.TButton", foreground="#EB0000", focuscolor='#EB0000')
                     basic_btn_yes.config(text="✔️  Yes", style="yesdel.TButton")
                     basic_btn_yes.place(x=360, y=160, width=80, height=37)
@@ -2816,18 +2897,18 @@ def DWI():
                     basic_lb1.config(justify="center", text="Estas Seguro que quieres ELIMINARLO del Inventario?\nEsta accion es INRREVERSIBLE!", font=("Segoe UI", 12))
                     basic_lb1.place(x=255, y=15) 
                     info_bf_lb.config(justify="center", text="Info:", font=("Segoe UI", 12, "bold"))
-                    info_bf_lb.place(x=120, y=70)
-                    id_inf.place(x=120, y=170)
-                    brand_bf.place(x=120, y=95)
-                    model_bf.place(x=310, y=95)
-                    color_bf.place(x=555, y=95)
-                    date_bf.place(x=720, y=95)
+                    info_bf_lb.place(x=115, y=70)
+                    id_inf.place(x=115, y=170)
+                    brand_bf.place(x=115, y=95, width=192)
+                    model_bf.place(x=305, y=95, width=247)
+                    color_bf.place(x=550, y=95, width=167)
+                    date_bf.place(x=715, y=95, width=160)
+                    infobf_frame.place(x=115, y=120, width=760, height=2)
                     style_elements.configure("yesdel.TButton", foreground="#EB0000", focuscolor='#EB0000')
                     basic_btn_yes.config(text="✔️  Si", style="yesdel.TButton")
                     basic_btn_yes.place(x=360, y=160, width=80, height=37)
                     basic_btn_no.config(text="❌  No")
                     basic_btn_no.place(x=455, y=160, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2898,7 +2979,6 @@ def DWI():
                     show_csvfilelb.config(text="📂 Mostrar Archivo")
                     show_csvfilelb.place(x=346, y=134)
                     basic_btn_ok.place(x=198, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2938,7 +3018,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Archivo de Texto contiene Valores No Validos o Esta Corrupto!\nNo Se Guardara el Contenido de los Datos del Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=259, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2978,7 +3057,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Usuario ha Cancelado la Exportación del Archivo de Texto.\nNo se han Hecho Cambios.", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=238, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3050,7 +3128,6 @@ def DWI():
                     basic_btn_yes.place(x=130, y=115, width=80, height=37)
                     basic_btn_no.config(text="❌ No", command=hide_basic_window)
                     basic_btn_no.place(x=225, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3089,7 +3166,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Archivo CSV se ha Importado Correctamente!\nEl Contenido se Cargara!", font=("Segoe UI", 12))
                     basic_lb1.place(x=120, y=44)
                     basic_btn_ok.place(x=200, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3129,7 +3205,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Archivo CSV contiene Valores No Validos/Esta Corrupto/No se Pudo Encontrar!\nNo Se Cargara el Contenido de los Datos del Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=316, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3169,7 +3244,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Usuario ha Cancelado la Importación del Archivo CSV.\nNo se han Hecho Cambios.", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=236, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3229,7 +3303,6 @@ def DWI():
                     basic_btn_yes.place(x=238, y=115, width=110, height=37)
                     basic_btn_no.config(text="❌  Cancelar", command=hide_basic_window)
                     basic_btn_no.place(x=373, y=115, width=110, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3299,7 +3372,6 @@ def DWI():
                     show_csvfilelb.config(text="📂 Mostrar Archivo")
                     show_csvfilelb.place(x=370, y=134)
                     basic_btn_ok.place(x=215, y=115, width=80, height=37)
-
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3339,7 +3411,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Archivo CSV contiene Valores No Validos o Esta Corrupto!\nNo Se Guardara el Contenido de los Datos del Inventario!", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=246, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3379,7 +3450,6 @@ def DWI():
                     basic_lb1.config(justify="center", text="El Usuario ha Cancelado la Exportación del Archivo CSV.\nNo se han Hecho Cambios.", font=("Segoe UI", 12))
                     basic_lb1.place(x=110, y=34)
                     basic_btn_ok.place(x=236, y=105, width=80, height=37)
-                    
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -3536,14 +3606,23 @@ def DWI():
                 loadfile_error_msg()
                 
         def main_window():
-            global username_entry, password_entry, dynamic_window, username, info_bf, info_af, import_csvfile, show_csvfile, show_txtfile
+            global username_entry, password_entry, dynamic_window, info_bf, info_af, import_csvfile, show_csvfile, show_txtfile
             username_get = username_entry.get()
-            username = username_get.lower()
             try:
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                decrypt_data = crypt_key.decrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(decrypt_data)
                 with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as accountfile:
                     accountreader = csv.reader(accountfile, delimiter=",")
                     accountdata = list(accountreader)
-                if accountdata[0][0] == username and accountdata[0][1] == password_entry.get():
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                    account_info = accountfile.read()
+                encrypt_data = crypt_key.encrypt(account_info)
+                with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                    accountfile.write(encrypt_data)
+                if accountdata[0][0] == username_get.lower() and accountdata[0][1] == password_entry.get():
                     dynamic_window.withdraw()
                     ltips_mbtn.place_forget()
                     lmbar_separator.place_forget()
@@ -3612,24 +3691,6 @@ def DWI():
                         settings_btn.place(x=886, y=0, width=37, height=33)
 
                     # ================================================================================================================== #  
-                    def reflesh_inventory():
-                        try:
-                            inventory_table.delete(*inventory_table.get_children())
-                            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r") as refleshfile:
-                                data = refleshfile.readlines()
-                            if len(data) > 10:
-                                table_scrollbar.place(x=885, y=153, height=222, width=17)
-                            else:
-                                table_scrollbar.place_forget()
-                            for row in data:
-                                id, brand, model, color, date = row.strip().split(",")
-                                inventory_table.insert("", "end", values=(id, brand, model, color, date))
-                        except (UnicodeDecodeError, ValueError, FileNotFoundError, IndexError):
-                            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
-                                inventoryfile.write("")
-                            error_window()
-                            load_csvfile_error_msg()
-
                     def search_byid():
                         file = open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r")
                         reader = csv.reader(file)
@@ -3642,7 +3703,7 @@ def DWI():
                             filtered_data = [row for row in data if idget in row[0].upper()]
                             inventory_table.delete(*inventory_table.get_children())
                             if len(filtered_data) > 10:
-                                table_scrollbar.place(x=885, y=153, height=222, width=17)
+                                table_scrollbar.place(x=885, y=153, height=225, width=17)
                             else:
                                 table_scrollbar.place_forget()
                             for row in filtered_data:
@@ -3689,7 +3750,6 @@ def DWI():
                                 elif lang_value == 2:
                                     search_entry.delete(0, tk.END)
                                     search_entry.insert(0, "Buscar por ID...")
-
                                 idlb.place_forget()
                                 id_entry.place_forget()
                                 datelb.place_forget()
@@ -4047,6 +4107,8 @@ def DWI():
                                     model_af.place_forget()
                                     color_af.place_forget()
                                     date_af.place_forget()
+                                    infobf_frame.place_forget()
+                                    infoaf_frame.place_forget()
                                     for row in data:
                                         if row[0] == id_upper:
                                             row[1] = brand_upper
@@ -4093,6 +4155,8 @@ def DWI():
                                 model_af.place_forget()
                                 color_af.place_forget()
                                 date_af.place_forget()
+                                infobf_frame.place_forget()
+                                infoaf_frame.place_forget()
                                 basic_window.grab_release()
                                 basic_window.transient(None)
                             basic_btn_yes.config(command=edit_yes)
@@ -4290,6 +4354,7 @@ def DWI():
                                 model_bf.place_forget()
                                 color_bf.place_forget()
                                 date_bf.place_forget()
+                                infobf_frame.place_forget()
                                 try:
                                     basic_window.withdraw()
                                     basic_btn_yes.place_forget()
@@ -4325,6 +4390,7 @@ def DWI():
                                 model_bf.place_forget()
                                 color_bf.place_forget()
                                 date_bf.place_forget()
+                                infobf_frame.place_forget()
                                 restore_elements()
                                 basic_window.withdraw()
                                 basic_btn_yes.place_forget()
@@ -4388,7 +4454,7 @@ def DWI():
                                 with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r") as refleshfile:
                                     data = refleshfile.readlines()
                                 if len(data) > 10:
-                                    table_scrollbar.place(x=885, y=153, height=222, width=17)
+                                    table_scrollbar.place(x=885, y=153, height=225, width=17)
                                 else:
                                     table_scrollbar.place_forget()
                                 for row in data:
@@ -4521,7 +4587,7 @@ def DWI():
             except TclError:
                 error_window()
                 loadfile_error_msg()
-            except (ValueError, FileNotFoundError, IndexError):
+            except (ValueError, FileNotFoundError, IndexError, cryptography.fernet.InvalidToken):
                 error_window()
                 datafile_error_msg()
         
@@ -4679,7 +4745,7 @@ def DWI():
             search_entry.config(fg="white", bg="#191919", insertbackground="white", highlightcolor="#636363", highlightbackground="#292929", highlightthickness=2)           
                 
         def table_light():
-            style_table.configure("light.Treeview", fieldbackground="white", background="white", foreground="black", font=("Segoe UI", 10))
+            style_table.configure("light.Treeview", fieldbackground="white", background="white", foreground="black", font=("Segoe UI", 11))
             style_table.configure("Treeview.Heading", background="white", foreground="black", relief="ridge", font=("Segoe UI", 12))
             style_table.map("Treeview.Heading", background=[('active', 'white')])
             style_table.map("light.Treeview", background=[('selected', '#C3C3C3')], foreground=[('selected', 'black')])
@@ -4688,7 +4754,7 @@ def DWI():
             style_table.configure("Vertical.TScrollbar", background="#EFEFEF", arrowcolor="black", troughcolor="white", arrowsize=32)
 
         def table_dark():
-            style_table.configure("dark.Treeview", fieldbackground="#101010", background="#101010", foreground="white", font=("Segoe UI", 10))
+            style_table.configure("dark.Treeview", fieldbackground="#101010", background="#101010", foreground="white", font=("Segoe UI", 11))
             style_table.configure("Treeview.Heading", background="#101010", foreground="white", relief="ridge", font=("Segoe UI", 12))
             style_table.map("Treeview.Heading", background=[('active', '#101010')])
             style_table.map("dark.Treeview", background=[('selected', '#303030')], foreground=[('selected', 'white')])
@@ -4713,14 +4779,16 @@ def DWI():
             info_bf_lb.config(bg="white", fg="black")
             info_af_lb.config(bg="white", fg="black")
             id_inf.config(bg="white")
-            brand_bf.config(bg="white", fg="black")
-            model_bf.config(bg="white", fg="black")
-            color_bf.config(bg="white", fg="black")
-            date_bf.config(bg="white", fg="black")
-            brand_af.config(bg="white", fg="black")
-            model_af.config(bg="white", fg="black")
-            color_af.config(bg="white", fg="black")
-            date_af.config(bg="white", fg="black")
+            brand_bf.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            model_bf.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            color_bf.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            date_bf.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            brand_af.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            model_af.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            color_af.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            date_af.config(bg="white", fg="black", highlightbackground="#C0C0C0", highlightthickness=2)
+            infobf_frame.config(highlightbackground="#C0C0C0", highlightthickness=2, bg="white")
+            infoaf_frame.config(highlightbackground="#C0C0C0", highlightthickness=2, bg="white")
 
         def basic_window_dark():
             basic_window.config(bg="#101010")
@@ -4729,66 +4797,65 @@ def DWI():
             info_bf_lb.config(bg="#101010", fg="white")
             info_af_lb.config(bg="#101010", fg="white")
             id_inf.config(bg="#101010")
-            brand_bf.config(bg="#101010", fg="white")
-            model_bf.config(bg="#101010", fg="white")
-            color_bf.config(bg="#101010", fg="white")
-            date_bf.config(bg="#101010", fg="white")
-            brand_af.config(bg="#101010", fg="white")
-            model_af.config(bg="#101010", fg="white")
-            color_af.config(bg="#101010", fg="white")
-            date_af.config(bg="#101010", fg="white")
+            brand_bf.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            model_bf.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            color_bf.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            date_bf.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            brand_af.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            model_af.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            color_af.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            date_af.config(bg="#101010", fg="white", highlightbackground="#404040", highlightthickness=2)
+            infobf_frame.config(highlightbackground="#404040", highlightthickness=2, bg="#101010")
+            infoaf_frame.config(highlightbackground="#404040", highlightthickness=2, bg="#101010")
         
         def info_af_color():
-            try:
-                with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
-                    reader = csv.reader(file)
-                    data = list(reader)
-                brand_get = brand_entry.get()
-                brand_upper = brand_get.upper()
-                model_get = model_entry.get()
-                model_upper = model_get.upper()
-                color_get = color_entry.get()
-                color_upper = color_get.upper()
-                date_get = date_entry.get()
-                date_upper = date_get.upper()
-                for row in data:
-                    if row[0] == id_entry.get():
-                        theme_value = themegroup.get()
-                        if row[1] != brand_upper:
-                            brand_af.config(fg="#0078FF")
-                        else:
-                            if theme_value == 3:
-                                if darkdetect.isDark():
-                                    brand_af.config(fg="white")
-                                else:
-                                    brand_af.config(fg="black")
-                        if row[2] != model_upper:
-                            model_af.config(fg="#0078FF")
-                        else:
-                            if theme_value == 3:
-                                if darkdetect.isDark():
-                                    model_af.config(fg="white")
-                                else:
-                                    model_af.config(fg="black")
-                        if row[3] != color_upper:
-                            color_af.config(fg="#0078FF")
-                        else:
-                            if theme_value == 3:
-                                if darkdetect.isDark():
-                                    color_af.config(fg="white")
-                                else:
-                                    color_af.config(fg="black")
-                        if row[4] != date_upper:
-                            date_af.config(fg="#0078FF")
-                        else:
-                            if theme_value == 3:
-                                if darkdetect.isDark():
-                                    date_af.config(fg="white")
-                                else:
-                                    date_af.config(fg="black")
-                        break
-            except:
-                None
+            with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "r", newline="") as file:
+                reader = csv.reader(file)
+                data = list(reader)
+            brand_get = brand_entry.get()
+            brand_upper = brand_get.upper()
+            model_get = model_entry.get()
+            model_upper = model_get.upper()
+            color_get = color_entry.get()
+            color_upper = color_get.upper()
+            date_get = date_entry.get()
+            date_upper = date_get.upper()
+            for row in data:
+                if row[0] == id_entry.get():
+                    theme_value = themegroup.get()
+                    if row[1] != brand_upper:
+                        brand_af.config(fg="#0078FF")
+                    else:
+                        if theme_value == 3:
+                            if darkdetect.isDark():
+                                brand_af.config(fg="white")
+                            else:
+                                brand_af.config(fg="black")
+                    if row[2] != model_upper:
+                        model_af.config(fg="#0078FF")
+                    else:
+                        if theme_value == 3:
+                            if darkdetect.isDark():
+                                model_af.config(fg="white")
+                            else:
+                                model_af.config(fg="black")
+                    if row[3] != color_upper:
+                        color_af.config(fg="#0078FF")
+                    else:
+                        if theme_value == 3:
+                            if darkdetect.isDark():
+                                color_af.config(fg="white")
+                            else:
+                                color_af.config(fg="black")
+                    if row[4] != date_upper:
+                        date_af.config(fg="#0078FF")
+                    else:
+                        if theme_value == 3:
+                            if darkdetect.isDark():
+                                date_af.config(fg="white")
+                            else:
+                                date_af.config(fg="black")
+                    break
 
         # ============================================== LOAD ELEMENTS ============================================== #
         # ========== LOAD LOGIN WINDOW ========== #
@@ -4868,30 +4935,6 @@ def DWI():
         error_window()
         datafile_error_msg()
 
-# ============= REQUIREMENTS ============= #
-os_version = int(platform.version().split('.')[2])
-recom_req = 19042 
-min_req = 14393
-
-display_res = ctypes.windll.user32.GetDesktopWindow()
-res = ctypes.wintypes.RECT()
-ctypes.windll.user32.GetWindowRect(display_res, ctypes.byref(res))
-res_width = res.right - res.left 
-res_height = res.bottom - res.top 
-
-# ============================================== START PROGRAM EXECUTION ============================================== #
-if not os.path.exists(os.path.join(os.path.dirname(__file__), "settings.dat")):
-    with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "w") as settingfile:
-        settingfile.write("")
-if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data")):
-    os.makedirs(os.path.join(os.path.dirname(__file__), "Data"))
-if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data/account_data.csv")):
-    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as accountfile:
-        accountfile.write(",")
-if not os.path.exists(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv")):
-    with open(os.path.join(os.path.dirname(__file__), "Data/inventory_list.csv"), "w") as inventoryfile:
-        inventoryfile.write("")
-
 # ========== RESTORE DEFAULT SETTINGS (IF THE SETTINGS FILE IS CORRUPT)========== #
 with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
     loadsettings = csv.reader(settingfile)
@@ -4916,8 +4959,6 @@ else:
 with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as setupfile:
     loadsetup = csv.reader(setupfile)
     setupdata = list(loadsetup)
-with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as setupaccountfile:
-    setupaccountdata = setupaccountfile.read()
     
 def setup_program(): 
     try:   
@@ -4970,19 +5011,17 @@ def setup_program():
             setup_password.config(fg="black", bg="#F9F9F9", insertbackground="black", highlightcolor="#AAAAAA", highlightbackground="#DADADA", highlightthickness=2)
             setup_username_lb.config(bg="white", fg="black")
             setup_password_lb.config(bg="white", fg="black")
-            setup_check1_lb.config(bg="white", fg="black")
-            setup_check2_lb.config(bg="white", fg="black")
+            setup_check1_lb.config(bg="white")
+            setup_check2_lb.config(bg="white")
             style_elements.map("TButton", background=[('pressed', '#E3E3E3'), ('active', '#DADADA'), ("disabled", "#F6F6F6")], foreground=[("disabled", "#888888")], 
                                    relief=[('pressed', 'groove'), ('!pressed', 'ridge')])
             style_elements.configure("TButton", background="#ECECEC", foreground="black", font=("Segoe UI", 12), focuscolor="black", justify=tk.CENTER, anchor=tk.CENTER)
             style_elements.configure("done.TButton", foreground='#009003', focuscolor='#009003')
             setup_btn_done.config(style='done.TButton')
-
             style_elements.map("pass.TButton", background=[('pressed', 'white'), ('active', 'white')], 
                                    foreground=[('pressed', '#737373'), ('active', 'black')], relief=[('pressed', 'flat'), ('!pressed', 'flat')])
             style_elements.configure('pass.TButton', foreground='black', background="white", justify=tk.CENTER, anchor=tk.CENTER)
             showhide_setuppass_btn.config(style='pass.TButton')
-
             style_elements.map("Toolbutton", background=[('pressed', '#E3E3E3'), ('active', '#DADADA'), ('selected', '#C3C3C3')], 
                                 indicatorcolor=[('selected', 'black')], relief=[('selected', 'groove')])
             style_elements.configure("Toolbutton", background="#ECECEC", foreground="black", font=("Segoe UI", 12), focuscolor="black", indicatorcolor="#999999", 
@@ -5008,8 +5047,8 @@ def setup_program():
             setup_password.config(fg="white", bg="#191919", insertbackground="white", highlightcolor="#636363", highlightbackground="#292929", highlightthickness=2)
             setup_username_lb.config(bg="#101010", fg="white")
             setup_password_lb.config(bg="#101010", fg="white")
-            setup_check1_lb.config(bg="#101010", fg="white")
-            setup_check2_lb.config(bg="#101010", fg="white")
+            setup_check1_lb.config(bg="#101010")
+            setup_check2_lb.config(bg="#101010")
             style_elements.map("TButton", background=[('pressed', '#252525'), ('active', '#303030'), ("disabled", "#101010")], foreground=[("disabled", "#777777")], 
                                    relief=[('pressed', 'groove'), ('!pressed', 'ridge')])
             style_elements.configure("TButton", background="#171717", foreground="white", font=("Segoe UI", 12), focuscolor='white', justify=tk.CENTER, anchor=tk.CENTER)
@@ -5226,7 +5265,6 @@ def setup_program():
                     basic_btn_yes.place(x=162, y=125, width=80, height=37)
                     basic_btn_no.config(text="❌  No", command=hide_cancelsetup)
                     basic_btn_no.place(x=257, y=125, width=80, height=37)
-                
                 setup_width = round(window_w_total/2-window_w/2)
                 setup_height = round(window_h_total/2-window_h/2-100)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(setup_width)+"+"+str(setup_height))
@@ -5465,7 +5503,6 @@ def setup_program():
                 setup_password_lb.config(text="Nueva Contraseña", font=("Segoe UI", 12))
                 setup_btn_next.config(text="⏩")
                 setup_btn_back.config(text="⏪")
-
             setup_lb1.place(x=65, y=146)
             setup_btn_next.place(x=373, y=400, width=37, height=37) 
             setup_btn_back.place(x=10, y=400, width=37, height=37) 
@@ -5497,7 +5534,11 @@ def setup_program():
             with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w", newline="") as setupaccountfile:
                 setupwriter = csv.writer(setupaccountfile)
                 setupwriter.writerow([setupusername.lower(), setup_password.get()])
-                setupaccountfile.seek(0, 2)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "rb") as accountfile:
+                account_info = accountfile.read()
+            encrypt_data = crypt_key.encrypt(account_info)
+            with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "wb") as accountfile:
+                accountfile.write(encrypt_data)
             setup_systemthemerb.place_forget() 
             setup_lightthemerb.place_forget() 
             setup_darkthemerb.place_forget() 
@@ -5553,7 +5594,9 @@ def setup_program():
         datafile_error_msg()   
 
 setup_data = set([row[0]for row in setupdata])
-if len(setupaccountdata) <= 2 or set(["setup=unfinished"]).intersection(set(setup_data)) or len(setupaccountdata) > 42:
+with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "r") as setupaccountfile:
+    setupaccountdata = setupaccountfile.read()
+if len(setupaccountdata) < 99 or set(["setup=unfinished"]).intersection(set(setup_data)) or len(setupaccountdata) > 140:
     with open(os.path.join(os.path.dirname(__file__), "settings.dat"), "r", newline="") as settingfile:
         loadsettings = csv.reader(settingfile)
         settingdata = list(loadsettings)
@@ -5565,12 +5608,10 @@ if len(setupaccountdata) <= 2 or set(["setup=unfinished"]).intersection(set(setu
         writer = csv.writer(settingfile)
         writer.writerows(settingdata)
         settingfile.seek(0, 2) 
-    with open(os.path.join(os.path.dirname(__file__), "Data/account_data.csv"), "w") as setupaccountfile:
-        setupaccountfile.write(",")
     setup_program()
 
 if os_version < min_req:
-    tk.messagebox.showerror("OS Version Not supported | Version del S.O No compatible!", "Windows 10 x64 (Build 14393) or Higher is Required to Work!\nPlease Update the O.S, If you still have Problems contact the Developer.\n\nSe Necesita Windows 10 x64 (Compilacion 14393) o Superior para Funcionar!\nPor Favor Actualice el S.O, Si aun tienes Problemas contacta con el Desarrollador.")
+    tk.messagebox.showerror("OS Version Not supported! | Version del S.O No compatible!", "Windows 10 x64 (Build 14393) or Higher is Required to Work!\nPlease Update the O.S, If you still have Problems contact the Developer.\n\nSe Necesita Windows 10 x64 (Compilacion 14393) o Superior para Funcionar!\nPor Favor Actualice el S.O, Si aun tienes Problemas contacta con el Desarrollador.")
     sys.exit(0)
 elif res_width < 1024 or res_height < 768: 
     tk.messagebox.showerror("Low Screen Resolution Detected! | Baja Resolución de Pantalla Detectada!", "A Display Resolution of 1024 x 768 or Higher is Required to Work!\nIf you still have Problems contact the Developer.\n\nSe requiere una Resolucion de Pantalla de 1024 x 768 para Funcionar!\nSi aun tienes Problemas contacta con el Desarrollador.")
