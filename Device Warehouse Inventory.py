@@ -1833,7 +1833,7 @@ def DWI():
                     darkthemerb.place(x=179, y=51, width=110, height=40)
                     eng_langrb.place(x=47, y=164, width=110, height=40)
                     esp_langrb.place(x=179,y=164, width=110, height=40)
-                    setting_btn_cleardata.place(x=93, y=245, width=250, height=45)
+                    setting_btn_cleardata.place(x=43, y=245, width=250, height=45)
                     setting_btn_close.place(x=47, y=310, width=110, height=37)
                     setting_btn_apply.place(x=179, y=310, width=110, height=37)
                 else:
@@ -2617,21 +2617,21 @@ def DWI():
                 window_h_total = dynamic_window.winfo_screenheight()
                 lang_value = languagegroup.get()
                 if lang_value == 1:
-                    window_w = 495 
-                    window_h = 565 
+                    window_w = 405
+                    window_h = 425
                     basic_window.title("Changelog in this Version")
-                    basic_imglb.place(x=178, y=5)
-                    basic_lb1.config(justify="left", text="================ CHANGELOG ===============\n\n  <<<<<                  VERSION 3.2 (13-JUL-2024)              >>>>>\n\n- Encryption System has been Improved.\n- More FAQs Added to 'Tips'.\n- Added Developer Contact Information to 'About the Program'.\n- Added 'Clear Data Program' Option in Settings.\n- Various UI Improvements.\n- Improved Language Translations.\n- Some Functionality Improvements.\n- In-Code Optimizations.\n- Various Bugs Fixes.\n\n                               Developed By Eliezer Brito\n                                      © Elie-Dev (2024)\n                                      All rights reserved", font=("Segoe UI", 12))
+                    basic_imglb.place(x=133, y=5)
+                    basic_lb1.config(justify="left", text="============ CHANGELOG ============\n\n <<<<<    VERSION 3.2.1 (16-JUL-2024)    >>>>>\n\n- Program Stability Improvements.\n- Minor UI Fixes.\n\n                      Developed By Eliezer Brito\n                             © Elie-Dev (2024)\n                             All rights reserved", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)
-                    basic_btn_ok.place(x=198, y=520, width=80, height=37)
+                    basic_btn_ok.place(x=158, y=375, width=80, height=37)
                 elif lang_value == 2:
-                    window_w = 605 
-                    window_h = 565
+                    window_w = 455
+                    window_h = 425
                     basic_window.title("Registro de Cambios en esta Version")
-                    basic_imglb.place(x=239, y=5)
-                    basic_lb1.config(justify="left", text="================== REGISTRO DE CAMBIOS ==================\n\n  <<<<<                               VERSION 3.2 (13-JUL-2024)                               >>>>>\n\n- Se ha Mejorado el Sistema de Encryptacion.\n- Se Agregaron mas Preguntas Frecuentes a 'Consejos'.\n- Se Agrego Informacion de Contacto del Desarrollador en 'Acerca del Programa'.\n- Se Agrego la Opcion 'Borrar Datos del Programa' en Configuracion.\n- Varias Mejoras en la Interfaz de Usuario.\n- Se Mejoraron las Traducciones de los Idiomas.\n- Algunas Mejoras en la Funcionalidad.\n- Optimizaciones en el Codigo.\n- Varias Correcciones de Errores.\n\n                                             Desarrollado por Eliezer Brito\n                                                      © Elie-Dev (2024)\n                                           Todos los Derechos Reservados", font=("Segoe UI", 12))
+                    basic_imglb.place(x=159, y=5)
+                    basic_lb1.config(justify="left", text="=========== REGISTRO DE CAMBIOS ===========\n\n <<<<<           VERSION 3.2.1 (16-JUL-2024)           >>>>>\n\n- Mejoras en la Estabilidad del Programa.\n- Errores Menores en la IU Corregidos.\n\n                          Desarrollado por Eliezer Brito\n                                   © Elie-Dev (2024)\n                        Todos los Derechos Reservados", font=("Segoe UI", 12))
                     basic_lb1.place(x=17, y=140)
-                    basic_btn_ok.place(x=260, y=515, width=80, height=37)
+                    basic_btn_ok.place(x=180, y=375, width=80, height=37)
                 window_width = round(window_w_total/2-window_w/2)
                 window_height = round(window_h_total/2-window_h/2-30)
                 basic_window.geometry(str(window_w)+"x"+str(window_h)+"+"+str(window_width)+"+"+str(window_height))
@@ -2664,7 +2664,7 @@ def DWI():
                     window_h = 460
                     basic_window.title("About the Program")
                     basic_imglb.place(x=112, y=5)
-                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.2\n\nA Program that Facilitates the Management\nof Inventory Device Information\nfrom a Local Database.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2024)\nAll rights reserved", font=("Segoe UI", 12))
+                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.2.1\n\nA Program that Facilitates the Management\nof Inventory Device Information\nfrom a Local Database.\n\nDeveloped By Eliezer Brito\n© Elie-Dev (2024)\nAll rights reserved", font=("Segoe UI", 12))
                     basic_lb1.place(x=19, y=140)
                     contact_info.config(text="📧  Contact", command=contact)
                     github_project.config(text="🌐  Project Page", command=projectpage) 
@@ -2676,7 +2676,7 @@ def DWI():
                     window_h = 460
                     basic_window.title("Acerca del Programa")
                     basic_imglb.place(x=119, y=5)
-                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.2\n\nUn Programa que Facilita el\nManejo de informacion de los Dispositivos\ndel Inventario desde una Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n© Elie-Dev (2024)\nTodos los Derechos Reservados", font=("Segoe UI", 12))
+                    basic_lb1.config(justify="center", text="Device Warehouse Inventory\nVersion: 3.2.1\n\nUn Programa que Facilita el\nManejo de informacion de los Dispositivos\ndel Inventario desde una Base de Datos Local.\n\nDesarrollado por Eliezer Brito\n© Elie-Dev (2024)\nTodos los Derechos Reservados", font=("Segoe UI", 12))
                     basic_lb1.place(x=21, y=140)
                     contact_info.config(text="📧  Contacto", command=contact)
                     github_project.config(text="🌐  Pagina del Projecto", command=projectpage) 
@@ -4451,7 +4451,7 @@ def DWI():
                         modellb.place(x=388, y=443)
                         colorlb.place(x=388, y=483)
                         inventorylb.place(x=18, y=116)
-                        searchlb.place(x=596, y=114)
+                        searchlb.place(x=590, y=114)
                         username_logged_lb.place(x=550, y=3)
 
                     def separators_mw():
